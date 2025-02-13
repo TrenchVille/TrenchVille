@@ -58,6 +58,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
+    "@solana/web3.js": "latest",
     "expo": "latest",
     "three": "latest",
     "expo-gl": "latest",
@@ -65,13 +66,12 @@
     "react-native": "latest",
     "expo-file-system": "latest",
     "@react-three/fiber": "latest",
-    "@solana/web3.js": "latest",
-    "@tanstack/react-query": "latest",
-    "@react-three/drei": "latest",
     "@solana/wallet-adapter-react": "latest",
     "@solana/wallet-adapter-react-ui": "latest",
     "@solana/wallet-adapter-base": "latest",
-    "@solana/wallet-adapter-wallets": "latest"
+    "@solana/wallet-adapter-wallets": "latest",
+    "@tanstack/react-query": "latest",
+    "@react-three/drei": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
