@@ -68,9 +68,9 @@
     "@react-three/fiber": "latest",
     "@solana/wallet-adapter-react": "latest",
     "@solana/wallet-adapter-react-ui": "latest",
+    "@tanstack/react-query": "latest",
     "@solana/wallet-adapter-base": "latest",
     "@solana/wallet-adapter-wallets": "latest",
-    "@tanstack/react-query": "latest",
     "@react-three/drei": "latest"
   },
   "devDependencies": {

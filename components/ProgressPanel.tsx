@@ -1,11 +1,33 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Star } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown } from "lucide-react"
 
 export function ProgressPanel() {
+  const [marketCap, setMarketCap] = useState<number | null>(null)
+  const [holders, setHolders] = useState<number | null>(null)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/api/token-metadata")
+        const data = await response.json()
+        setMarketCap(data.data?.market_cap ? Number(data.data.market_cap) : null)
+        setHolders(data.data?.holder ? Number(data.data.holder) : null)
+      } catch (error) {
+        console.error("Error fetching data:", error)
+      }
+    }
+
+    fetchData()
+    const intervalId = setInterval(fetchData, 60000) // Refresh every minute
+
+    return () => clearInterval(intervalId)
+  }, [])
+
   return (
     <div className="space-y-2 bg-black text-white p-4">
       <Collapsible defaultOpen>
@@ -29,7 +51,7 @@ export function ProgressPanel() {
                 Market Cap
               </div>
               <div className="text-right">
-                <div>$2,015,815</div>
+                <div>{marketCap ? `$${marketCap.toLocaleString()}` : "Loading..."}</div>
                 <div className="text-xs text-gray-500">Target: $1,000,000</div>
               </div>
             </div>
@@ -49,7 +71,7 @@ export function ProgressPanel() {
 
             <div className="flex justify-between items-center">
               <div>Holders</div>
-              <div>5,385</div>
+              <div>{holders ? holders.toLocaleString() : "Loading..."}</div>
             </div>
 
             <div className="flex justify-between items-center">

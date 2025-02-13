@@ -47,6 +47,9 @@ export default function RootLayout({
                 <Link href="/3d" className="text-sm hover:text-white/80">
                   3D
                 </Link>
+                <Link href="/api" className="text-sm hover:text-white/80">
+                  API
+                </Link>
                 <ConnectWallet />
               </div>
             </nav>
