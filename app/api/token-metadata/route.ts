@@ -24,7 +24,7 @@ export async function GET() {
 
   try {
     const response = await fetchWithRetry(
-      "https://pro-api.solscan.io/v2.0/token/meta?address=CqGMgsUDbj1XnKe45FbzZLd64MivoKPSgnZQJb3emoon",
+      "https://pro-api.solscan.io/v2.0/token/meta?address=8aryhMEcqxsJdqZxEDfwKFKiHGyRJstuYXskYpsHpump",
       {
         method: "GET",
         headers: {

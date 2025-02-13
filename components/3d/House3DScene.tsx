@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
 import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils";
 
 function useKeyboardControls() {
   const keys = useRef({
@@ -91,7 +93,6 @@ const CharacterModel = ({ name, position, rotation, modelPath, onSelect, isSelec
     };
   }, [scene, actions, position, rotation]);
 
-  // Handle selection visibility
   useEffect(() => {
     if (outlineRef.current) {
       outlineRef.current.visible = isSelected;
@@ -144,29 +145,139 @@ function MapModel() {
 }
 
 function Scene() {
-  const { camera } = useThree();
+  const { camera, scene } = useThree();
   const controlsRef = useRef();
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const keys = useKeyboardControls();
   const moveSpeed = 0.2;
+  const { scene: character1bScene, animations } = useGLTF("/models/character1b.glb");
+  const mixersRef = useRef([]);
+  const clonedModelsRef = useRef([]);
+  const [holderCount, setHolderCount] = useState(0);
 
-  useFrame(() => {
+  // Fetch holder data
+  useEffect(() => {
+    const fetchHolderData = async () => {
+      try {
+        const response = await fetch('/api/token-metadata');
+        const data = await response.json();
+        const holders = data.data?.holder || 0;
+        setHolderCount(holders);
+      } catch (error) {
+        console.error('Error fetching holder data:', error);
+        setHolderCount(0);
+      }
+    };
+
+    fetchHolderData();
+  }, []);
+
+  // Generate random position within map bounds
+  const getRandomPosition = () => {
+    // Adjust these values based on your map size
+    const mapBounds = {
+      minX: -10,
+      maxX: 10,
+      minZ: 0,
+      maxZ: 20
+    };
+
+    return [
+      Math.random() * (mapBounds.maxX - mapBounds.minX) + mapBounds.minX,
+      -2, // Fixed Y position
+      Math.random() * (mapBounds.maxZ - mapBounds.minZ) + mapBounds.minZ
+    ];
+  };
+
+  useEffect(() => {
+    if (holderCount === 0) return;
+
+    // Initial camera setup
+    camera.position.set(15, 15, 25);
+    camera.lookAt(0, 0, 10);
+
+    // Clear existing clones
+    clonedModelsRef.current.forEach(model => {
+      scene.remove(model);
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.geometry.dispose();
+          if (child.material) {
+            child.material.dispose();
+          }
+        }
+      });
+    });
+    mixersRef.current.forEach(mixer => mixer.stopAllAction());
+    mixersRef.current = [];
+    clonedModelsRef.current = [];
+
+    // Create clones based on holder count
+    for (let i = 0; i < holderCount; i++) {
+      const clonedModel = SkeletonUtils.clone(character1bScene);
+      const position = getRandomPosition();
+      const rotation = [0, Math.random() * Math.PI * 2, 0]; // Random rotation around Y axis
+
+      clonedModel.position.set(...position);
+      clonedModel.rotation.set(...rotation);
+      clonedModel.scale.set(0.3, 0.3, 0.3);
+      clonedModel.userData.isClone = true;
+      clonedModel.userData.cloneIndex = i;
+
+      // Setup animations for the clone
+      const mixer = new THREE.AnimationMixer(clonedModel);
+      animations.forEach((clip) => {
+        const action = mixer.clipAction(clip);
+        action.play();
+      });
+      mixersRef.current.push(mixer);
+      clonedModelsRef.current.push(clonedModel);
+
+      // Add click handler
+      clonedModel.traverse((child) => {
+        if (child.isMesh) {
+          child.userData.clickable = true;
+        }
+      });
+
+      scene.add(clonedModel);
+    }
+
+    return () => {
+      // Cleanup
+      mixersRef.current.forEach(mixer => mixer.stopAllAction());
+      clonedModelsRef.current.forEach(model => {
+        scene.remove(model);
+        model.traverse((child) => {
+          if (child.isMesh) {
+            child.geometry.dispose();
+            if (child.material) {
+              child.material.dispose();
+            }
+          }
+        });
+      });
+      mixersRef.current = [];
+      clonedModelsRef.current = [];
+    };
+  }, [character1bScene, animations, scene, camera, holderCount]);
+
+  // Update animations
+  useFrame((state, delta) => {
+    mixersRef.current.forEach(mixer => mixer.update(delta));
+
     if (!camera) return;
 
     const movement = new THREE.Vector3(0, 0, 0);
     const forward = new THREE.Vector3();
     const right = new THREE.Vector3();
 
-    // Get camera's forward direction
     camera.getWorldDirection(forward);
-    // Calculate right vector properly
     right.set(-forward.z, 0, forward.x).normalize();
 
-    // Remove vertical component for horizontal-only movement
     forward.y = 0;
     forward.normalize();
 
-    // Add movement based on key presses
     if (keys.current.w) movement.add(forward.multiplyScalar(moveSpeed));
     if (keys.current.s) movement.sub(forward.multiplyScalar(moveSpeed));
     if (keys.current.d) movement.add(right.multiplyScalar(moveSpeed));
@@ -183,9 +294,12 @@ function Scene() {
   const handleCharacterSelect = (characterName) => {
     setSelectedCharacter((prev) => prev === characterName ? null : characterName);
     
-    if (characterName === 'character1') {
-      camera.position.set(-2, -1, 10);
-      camera.lookAt(0, -1.5, 10);
+    if (characterName === 'character1b' || characterName.startsWith('character1b_clone')) {
+      camera.position.set(-5, -1, 10);
+      camera.lookAt(-3, -1.5, 10);
+    } else if (characterName === 'character1Clone') {
+      camera.position.set(1, -1, 10);
+      camera.lookAt(3, -1.5, 10);
     } else if (characterName === 'character2') {
       camera.position.set(3, -1, 10);
       camera.lookAt(1, -1.5, 10);
@@ -195,8 +309,10 @@ function Scene() {
     }
 
     if (controlsRef.current) {
-      if (characterName === 'character1') {
-        controlsRef.current.target.set(0, -1.5, 10);
+      if (characterName === 'character1b' || characterName.startsWith('character1b_clone')) {
+        controlsRef.current.target.set(-3, -1.5, 10);
+      } else if (characterName === 'character1Clone') {
+        controlsRef.current.target.set(3, -1.5, 10);
       } else if (characterName === 'character2') {
         controlsRef.current.target.set(1, -1.5, 10);
       } else {
@@ -205,11 +321,6 @@ function Scene() {
       controlsRef.current.update();
     }
   };
-
-  useEffect(() => {
-    camera.position.set(15, 15, 25);
-    camera.lookAt(0, 0, 10);
-  }, [camera]);
 
   return (
     <>
@@ -220,30 +331,6 @@ function Scene() {
         castShadow
       />
       <MapModel />
-      <CharacterModel
-        name="character1"
-        position={[0, -2, 10]}
-        rotation={[0, -Math.PI / 10, 0]}
-        modelPath="/models/character1.glb"
-        onSelect={handleCharacterSelect}
-        isSelected={selectedCharacter === 'character1'}
-      />
-      <CharacterModel
-        name="character2"
-        position={[0, -2, 9]}
-        rotation={[0, Math.PI / 2, 0]}
-        modelPath="/models/character2.glb"
-        onSelect={handleCharacterSelect}
-        isSelected={selectedCharacter === 'character2'}
-      />
-      <CharacterModel
-        name="character3"
-        position={[4, -2, 10]}
-        rotation={[0, 110, 0]}
-        modelPath="/models/character3.glb"
-        onSelect={handleCharacterSelect}
-        isSelected={selectedCharacter === 'character3'}
-      />
       <OrbitControls 
         ref={controlsRef}
         enableZoom={true}
@@ -278,6 +365,4 @@ export default function MapScene() {
 }
 
 useGLTF.preload("/models/Map.glb");
-useGLTF.preload("/models/character1.glb");
-useGLTF.preload("/models/character2.glb");
-useGLTF.preload("/models/character3.glb");
+useGLTF.preload("/models/character1b.glb");
