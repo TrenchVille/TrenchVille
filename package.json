@@ -65,8 +65,13 @@
     "react-native": "latest",
     "expo-file-system": "latest",
     "@react-three/fiber": "latest",
+    "@solana/web3.js": "latest",
     "@tanstack/react-query": "latest",
-    "@react-three/drei": "latest"
+    "@react-three/drei": "latest",
+    "@solana/wallet-adapter-react": "latest",
+    "@solana/wallet-adapter-react-ui": "latest",
+    "@solana/wallet-adapter-base": "latest",
+    "@solana/wallet-adapter-wallets": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
