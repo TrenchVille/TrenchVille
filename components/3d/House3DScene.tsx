@@ -268,7 +268,7 @@ export default function MapScene() {
       <Scene />
       <PerspectiveCamera 
         makeDefault 
-        fov={75} 
+        fov={70} 
         position={[20, 20, 30]}
         near={0.1}
         far={1000}
