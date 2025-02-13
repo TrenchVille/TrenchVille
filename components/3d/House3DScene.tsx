@@ -40,76 +40,6 @@ function useKeyboardControls() {
   return keys;
 }
 
-const CharacterModel = ({ name, position, rotation, modelPath, onSelect, isSelected }) => {
-  const groupRef = useRef();
-  const outlineRef = useRef();
-  const { scene, animations } = useGLTF(modelPath);
-  const { actions } = useAnimations(animations, scene);
-
-  useEffect(() => {
-    if (!groupRef.current) return;
-
-    // Play animations
-    Object.values(actions).forEach(action => {
-      if (action) {
-        action.play();
-      }
-    });
-
-    // Set up main model
-    scene.scale.set(0.3, 0.3, 0.3);
-    scene.position.set(...position);
-    scene.rotation.set(...rotation);
-    groupRef.current.add(scene);
-
-    // Create outline model
-    const outlineModel = scene.clone();
-    outlineModel.traverse((child) => {
-      if (child instanceof THREE.Mesh) {
-        child.material = new THREE.MeshBasicMaterial({
-          color: 0x00ff00,
-          side: THREE.BackSide,
-          transparent: true,
-          opacity: 0.8,
-        });
-      }
-    });
-    outlineModel.scale.multiplyScalar(1.05);
-    outlineModel.visible = false;
-    outlineRef.current = outlineModel;
-    groupRef.current.add(outlineModel);
-
-    return () => {
-      groupRef.current.remove(scene);
-      groupRef.current.remove(outlineModel);
-      scene.traverse((child) => {
-        if (child instanceof THREE.Mesh) {
-          child.geometry.dispose();
-          if (child.material) {
-            child.material.dispose();
-          }
-        }
-      });
-    };
-  }, [scene, actions, position, rotation]);
-
-  useEffect(() => {
-    if (outlineRef.current) {
-      outlineRef.current.visible = isSelected;
-    }
-  }, [isSelected]);
-
-  return (
-    <group 
-      ref={groupRef} 
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(name);
-      }}
-    />
-  );
-};
-
 function MapModel() {
   const groupRef = useRef();
   const { scene } = useGLTF("/models/Map.glb");
@@ -150,7 +80,18 @@ function Scene() {
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const keys = useKeyboardControls();
   const moveSpeed = 0.2;
-  const { scene: character1bScene, animations } = useGLTF("/models/character1b.glb");
+  
+  // Load all character models
+  const character1b = useGLTF("/models/character1b.glb");
+  const character2 = useGLTF("/models/character2.glb");
+  const character3 = useGLTF("/models/character3.glb");
+  
+  const characterModels = [
+    { scene: character1b.scene, animations: character1b.animations },
+    { scene: character2.scene, animations: character2.animations },
+    { scene: character3.scene, animations: character3.animations }
+  ];
+
   const mixersRef = useRef([]);
   const clonedModelsRef = useRef([]);
   const [holderCount, setHolderCount] = useState(0);
@@ -159,12 +100,19 @@ function Scene() {
   useEffect(() => {
     const fetchHolderData = async () => {
       try {
+        console.log("Fetching holder data...");
         const response = await fetch('/api/token-metadata');
         const data = await response.json();
         const holders = data.data?.holder || 0;
+        console.log("Token Holder Count:", holders);
+        console.log("Full API Response:", data);
         setHolderCount(holders);
       } catch (error) {
         console.error('Error fetching holder data:', error);
+        console.log("API Error Details:", {
+          message: error.message,
+          stack: error.stack
+        });
         setHolderCount(0);
       }
     };
@@ -172,9 +120,7 @@ function Scene() {
     fetchHolderData();
   }, []);
 
-  // Generate random position within map bounds
   const getRandomPosition = () => {
-    // Adjust these values based on your map size
     const mapBounds = {
       minX: -10,
       maxX: 10,
@@ -182,16 +128,23 @@ function Scene() {
       maxZ: 20
     };
 
-    return [
+    const position = [
       Math.random() * (mapBounds.maxX - mapBounds.minX) + mapBounds.minX,
-      -2, // Fixed Y position
+      -2,
       Math.random() * (mapBounds.maxZ - mapBounds.minZ) + mapBounds.minZ
     ];
+
+    return position;
   };
 
   useEffect(() => {
-    if (holderCount === 0) return;
+    if (holderCount === 0) {
+      console.log("No holders detected, skipping clone creation");
+      return;
+    }
 
+    console.log("Starting clone creation for", holderCount, "holders");
+    
     // Initial camera setup
     camera.position.set(15, 15, 25);
     camera.lookAt(0, 0, 10);
@@ -214,26 +167,30 @@ function Scene() {
 
     // Create clones based on holder count
     for (let i = 0; i < holderCount; i++) {
-      const clonedModel = SkeletonUtils.clone(character1bScene);
+      // Randomly select a character model
+      const randomModelIndex = Math.floor(Math.random() * characterModels.length);
+      const selectedModel = characterModels[randomModelIndex];
+
+      const clonedModel = SkeletonUtils.clone(selectedModel.scene);
       const position = getRandomPosition();
-      const rotation = [0, Math.random() * Math.PI * 2, 0]; // Random rotation around Y axis
+      const rotation = [0, Math.random() * Math.PI * 2, 0];
 
       clonedModel.position.set(...position);
       clonedModel.rotation.set(...rotation);
       clonedModel.scale.set(0.3, 0.3, 0.3);
       clonedModel.userData.isClone = true;
       clonedModel.userData.cloneIndex = i;
+      clonedModel.userData.characterType = randomModelIndex + 1;
 
-      // Setup animations for the clone
+      // Setup animations
       const mixer = new THREE.AnimationMixer(clonedModel);
-      animations.forEach((clip) => {
+      selectedModel.animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
         action.play();
       });
       mixersRef.current.push(mixer);
       clonedModelsRef.current.push(clonedModel);
 
-      // Add click handler
       clonedModel.traverse((child) => {
         if (child.isMesh) {
           child.userData.clickable = true;
@@ -244,7 +201,6 @@ function Scene() {
     }
 
     return () => {
-      // Cleanup
       mixersRef.current.forEach(mixer => mixer.stopAllAction());
       clonedModelsRef.current.forEach(model => {
         scene.remove(model);
@@ -260,9 +216,8 @@ function Scene() {
       mixersRef.current = [];
       clonedModelsRef.current = [];
     };
-  }, [character1bScene, animations, scene, camera, holderCount]);
+  }, [character1b, character2, character3, scene, camera, holderCount]);
 
-  // Update animations
   useFrame((state, delta) => {
     mixersRef.current.forEach(mixer => mixer.update(delta));
 
@@ -292,34 +247,8 @@ function Scene() {
   });
 
   const handleCharacterSelect = (characterName) => {
+    console.log("Character selected:", characterName);
     setSelectedCharacter((prev) => prev === characterName ? null : characterName);
-    
-    if (characterName === 'character1b' || characterName.startsWith('character1b_clone')) {
-      camera.position.set(-5, -1, 10);
-      camera.lookAt(-3, -1.5, 10);
-    } else if (characterName === 'character1Clone') {
-      camera.position.set(1, -1, 10);
-      camera.lookAt(3, -1.5, 10);
-    } else if (characterName === 'character2') {
-      camera.position.set(3, -1, 10);
-      camera.lookAt(1, -1.5, 10);
-    } else {
-      camera.position.set(15, 15, 25);
-      camera.lookAt(0, 0, 10);
-    }
-
-    if (controlsRef.current) {
-      if (characterName === 'character1b' || characterName.startsWith('character1b_clone')) {
-        controlsRef.current.target.set(-3, -1.5, 10);
-      } else if (characterName === 'character1Clone') {
-        controlsRef.current.target.set(3, -1.5, 10);
-      } else if (characterName === 'character2') {
-        controlsRef.current.target.set(1, -1.5, 10);
-      } else {
-        controlsRef.current.target.set(0, 0, 10);
-      }
-      controlsRef.current.update();
-    }
   };
 
   return (
@@ -350,6 +279,18 @@ function Scene() {
 }
 
 export default function MapScene() {
+  const [isDebugMode] = useState(true);
+
+  useEffect(() => {
+    if (isDebugMode) {
+      console.log("Debug Mode Enabled");
+      console.log("Environment:", {
+        nextPublicApiUrl: process.env.NEXT_PUBLIC_API_URL,
+        isDevelopment: process.env.NODE_ENV === 'development'
+      });
+    }
+  }, [isDebugMode]);
+
   return (
     <Canvas shadows>
       <Scene />
@@ -366,3 +307,5 @@ export default function MapScene() {
 
 useGLTF.preload("/models/Map.glb");
 useGLTF.preload("/models/character1b.glb");
+useGLTF.preload("/models/character2.glb");
+useGLTF.preload("/models/character3.glb");
