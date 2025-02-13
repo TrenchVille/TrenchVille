@@ -223,18 +223,26 @@ function Scene() {
       <CharacterModel
         name="character1"
         position={[0, -2, 10]}
-        rotation={[0, -Math.PI / 2, 0]}
+        rotation={[0, -Math.PI / 10, 0]}
         modelPath="/models/character1.glb"
         onSelect={handleCharacterSelect}
         isSelected={selectedCharacter === 'character1'}
       />
       <CharacterModel
         name="character2"
-        position={[1, -2, 10]}
+        position={[0, -2, 9]}
         rotation={[0, Math.PI / 2, 0]}
         modelPath="/models/character2.glb"
         onSelect={handleCharacterSelect}
         isSelected={selectedCharacter === 'character2'}
+      />
+      <CharacterModel
+        name="character3"
+        position={[4, -2, 10]}
+        rotation={[0, 110, 0]}
+        modelPath="/models/character3.glb"
+        onSelect={handleCharacterSelect}
+        isSelected={selectedCharacter === 'character3'}
       />
       <OrbitControls 
         ref={controlsRef}
@@ -272,3 +280,4 @@ export default function MapScene() {
 useGLTF.preload("/models/Map.glb");
 useGLTF.preload("/models/character1.glb");
 useGLTF.preload("/models/character2.glb");
+useGLTF.preload("/models/character3.glb");
