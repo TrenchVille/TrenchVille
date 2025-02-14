@@ -89,8 +89,9 @@ function SidewalkSpawnArea() {
         child.material = new THREE.MeshBasicMaterial({
           color: 0x00ff00,
           transparent: true,
-          opacity: 0.2,
-          wireframe: true
+          opacity: 0,
+          wireframe: true,
+          visible: false
         });
         child.visible = true;
       }
@@ -180,6 +181,7 @@ function Scene() {
         const response = await fetch('/api/token-metadata');
         const data = await response.json();
         const holders = data.data?.holder || 0;
+        console.log('Holder count:', holders);
         setHolderCount(holders);
       } catch (error) {
         console.error('Error fetching holder data:', error);
