@@ -6,6 +6,7 @@ import { InfoFAQ } from "@/components/InfoFAQ"
 
 const CyberpunkCity = dynamic(() => import("@/components/3d/CyberpunkCity"), { ssr: false })
 
+
 export default function Home() {
   return (
     <div className="flex">

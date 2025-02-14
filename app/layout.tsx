@@ -50,12 +50,16 @@ export default function RootLayout({
                 <Link href="/api" className="text-sm hover:text-white/80">
                   API
                 </Link>
+                <Link href="/Holders" className="text-sm hover:text-white/80">
+                  Holders
+                </Link>
                 <ConnectWallet />
               </div>
             </nav>
           </header>
           <div className="pt-16 min-h-screen">{children}</div>
         </DynamicWalletProvider>
+        
       </body>
     </html>
   )
