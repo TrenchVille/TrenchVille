@@ -48,14 +48,10 @@ function MapModel() {
     if (!groupRef.current) return;
 
     scene.scale.set(0.3, 0.3, 0.3);
-    scene.position.set(0, -2, 10);
-    scene.rotation.set(0, 0, 0);
+    scene.position.set(0, -2, 0);
 
     const box = new THREE.Box3().setFromObject(scene);
     const center = box.getCenter(new THREE.Vector3());
-    scene.position.sub(center);
-    scene.position.y = -2;
-    scene.position.z += 10;
 
     groupRef.current.add(scene);
 
@@ -71,7 +67,50 @@ function MapModel() {
     };
   }, [scene]);
 
-  return <group ref={groupRef} position={[0, 0, 0]} />;
+  return <group ref={groupRef} />;
+}
+
+function SidewalkSpawnArea() {
+  const groupRef = useRef();
+  const { scene } = useGLTF("/models/SidewalkSpawn.glb");
+  const boundsRef = useRef(null);
+
+  useEffect(() => {
+    if (!groupRef.current) return;
+
+    scene.scale.set(0.3, 0.3, 0.3);
+    scene.position.set(0, -2, 0);
+
+    boundsRef.current = new THREE.Box3().setFromObject(scene);
+    const center = boundsRef.current.getCenter(new THREE.Vector3());
+
+    scene.traverse((child) => {
+      if (child instanceof THREE.Mesh) {
+        child.material = new THREE.MeshBasicMaterial({
+          color: 0x00ff00,
+          transparent: true,
+          opacity: 0.2,
+          wireframe: true
+        });
+        child.visible = true;
+      }
+    });
+
+    groupRef.current.add(scene);
+
+    return () => {
+      scene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          child.geometry.dispose();
+          if (child.material) {
+            child.material.dispose();
+          }
+        }
+      });
+    };
+  }, [scene]);
+
+  return <group ref={groupRef} />;
 }
 
 function Scene() {
@@ -80,11 +119,12 @@ function Scene() {
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const keys = useKeyboardControls();
   const moveSpeed = 0.2;
+  const spawnAreaRef = useRef(null);
   
-  // Load all character models
   const character1b = useGLTF("/models/character1b.glb");
   const character2 = useGLTF("/models/character2.glb");
   const character3 = useGLTF("/models/character3.glb");
+  const { scene: sidewalkScene } = useGLTF("/models/SidewalkSpawn.glb");
   
   const characterModels = [
     { scene: character1b.scene, animations: character1b.animations },
@@ -96,23 +136,53 @@ function Scene() {
   const clonedModelsRef = useRef([]);
   const [holderCount, setHolderCount] = useState(0);
 
-  // Fetch holder data
+  const getRandomPosition = () => {
+    if (!sidewalkScene) return [0, -2, 0];
+
+    // Get the bounding box of the sidewalk mesh
+    const box = new THREE.Box3().setFromObject(sidewalkScene);
+    
+    // Try to find a valid spawn point
+    for (let attempts = 0; attempts < 100; attempts++) {
+      // Generate random position within the bounding box
+      const x = THREE.MathUtils.randFloat(box.min.x, box.max.x);
+      const z = THREE.MathUtils.randFloat(box.min.z, box.max.z);
+      
+      // Create a raycaster to check if point is on the mesh
+      const raycaster = new THREE.Raycaster();
+      const position = new THREE.Vector3(x, box.max.y + 1, z);
+      raycaster.set(position, new THREE.Vector3(0, -1, 0));
+      
+      let isValidSpawn = false;
+      
+      // Check intersection with sidewalk mesh
+      sidewalkScene.traverse((child) => {
+        if (child instanceof THREE.Mesh) {
+          const intersects = raycaster.intersectObject(child);
+          if (intersects.length > 0) {
+            isValidSpawn = true;
+          }
+        }
+      });
+      
+      if (isValidSpawn) {
+        return [x, -2, z];
+      }
+    }
+    
+    // Fallback position if no valid point found
+    return [0, -2, 0];
+  };
+
   useEffect(() => {
     const fetchHolderData = async () => {
       try {
-        console.log("Fetching holder data...");
         const response = await fetch('/api/token-metadata');
         const data = await response.json();
         const holders = data.data?.holder || 0;
-        console.log("Token Holder Count:", holders);
-        console.log("Full API Response:", data);
         setHolderCount(holders);
       } catch (error) {
         console.error('Error fetching holder data:', error);
-        console.log("API Error Details:", {
-          message: error.message,
-          stack: error.stack
-        });
         setHolderCount(0);
       }
     };
@@ -120,40 +190,16 @@ function Scene() {
     fetchHolderData();
   }, []);
 
-  const getRandomPosition = () => {
-    const mapBounds = {
-      minX: -10,
-      maxX: 10,
-      minZ: 0,
-      maxZ: 20
-    };
-
-    const position = [
-      Math.random() * (mapBounds.maxX - mapBounds.minX) + mapBounds.minX,
-      -2,
-      Math.random() * (mapBounds.maxZ - mapBounds.minZ) + mapBounds.minZ
-    ];
-
-    return position;
-  };
-
   useEffect(() => {
-    if (holderCount === 0) {
-      console.log("No holders detected, skipping clone creation");
-      return;
-    }
+    if (holderCount === 0 || !sidewalkScene) return;
 
-    console.log("Starting clone creation for", holderCount, "holders");
-    
-    // Initial camera setup
     camera.position.set(15, 15, 25);
     camera.lookAt(0, 0, 10);
 
-    // Clear existing clones
     clonedModelsRef.current.forEach(model => {
       scene.remove(model);
       model.traverse((child) => {
-        if (child.isMesh) {
+        if (child instanceof THREE.Mesh) {
           child.geometry.dispose();
           if (child.material) {
             child.material.dispose();
@@ -165,9 +211,7 @@ function Scene() {
     mixersRef.current = [];
     clonedModelsRef.current = [];
 
-    // Create clones based on holder count
     for (let i = 0; i < holderCount; i++) {
-      // Randomly select a character model
       const randomModelIndex = Math.floor(Math.random() * characterModels.length);
       const selectedModel = characterModels[randomModelIndex];
 
@@ -182,7 +226,6 @@ function Scene() {
       clonedModel.userData.cloneIndex = i;
       clonedModel.userData.characterType = randomModelIndex + 1;
 
-      // Setup animations
       const mixer = new THREE.AnimationMixer(clonedModel);
       selectedModel.animations.forEach((clip) => {
         const action = mixer.clipAction(clip);
@@ -192,7 +235,7 @@ function Scene() {
       clonedModelsRef.current.push(clonedModel);
 
       clonedModel.traverse((child) => {
-        if (child.isMesh) {
+        if (child instanceof THREE.Mesh) {
           child.userData.clickable = true;
         }
       });
@@ -205,7 +248,7 @@ function Scene() {
       clonedModelsRef.current.forEach(model => {
         scene.remove(model);
         model.traverse((child) => {
-          if (child.isMesh) {
+          if (child instanceof THREE.Mesh) {
             child.geometry.dispose();
             if (child.material) {
               child.material.dispose();
@@ -216,7 +259,7 @@ function Scene() {
       mixersRef.current = [];
       clonedModelsRef.current = [];
     };
-  }, [character1b, character2, character3, scene, camera, holderCount]);
+  }, [character1b, character2, character3, scene, camera, holderCount, sidewalkScene]);
 
   useFrame((state, delta) => {
     mixersRef.current.forEach(mixer => mixer.update(delta));
@@ -247,7 +290,6 @@ function Scene() {
   });
 
   const handleCharacterSelect = (characterName) => {
-    console.log("Character selected:", characterName);
     setSelectedCharacter((prev) => prev === characterName ? null : characterName);
   };
 
@@ -260,6 +302,18 @@ function Scene() {
         castShadow
       />
       <MapModel />
+      <SidewalkSpawnArea />
+      {clonedModelsRef.current.map((model, index) => (
+        <primitive 
+          key={index}
+          object={model}
+          onClick={(e) => {
+            e.stopPropagation();
+            const targetObject = e.object;
+            handleCharacterSelect(targetObject.userData.cloneIndex);
+          }}
+        />
+      ))}
       <OrbitControls 
         ref={controlsRef}
         enableZoom={true}
@@ -306,6 +360,7 @@ export default function MapScene() {
 }
 
 useGLTF.preload("/models/Map.glb");
+useGLTF.preload("/models/SidewalkSpawn.glb");
 useGLTF.preload("/models/character1b.glb");
 useGLTF.preload("/models/character2.glb");
 useGLTF.preload("/models/character3.glb");
