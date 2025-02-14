@@ -24,11 +24,13 @@ interface HoldersListProps {
 
 export default function HoldersList({ initialHolders }: HoldersListProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['holders'],
     queryFn: async () => {
       try {
+        setIsLoadingMore(true)
         const response = await fetch('/api/holders')
         const responseData = await response.json()
         
@@ -36,13 +38,15 @@ export default function HoldersList({ initialHolders }: HoldersListProps) {
           throw new Error(responseData.error || 'Failed to fetch data')
         }
         
-        console.log('API Response:', responseData)
         return responseData
       } catch (error) {
         console.error('Fetch error:', error)
         throw error
+      } finally {
+        setIsLoadingMore(false)
       }
     },
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
     retry: 1
   })
 
@@ -56,8 +60,9 @@ export default function HoldersList({ initialHolders }: HoldersListProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-40">
+      <div className="flex flex-col items-center justify-center h-40 space-y-4">
         <Loader2 className="h-8 w-8 animate-spin" />
+        <div className="text-sm text-gray-500">Loading holders data...</div>
       </div>
     )
   }
@@ -68,9 +73,6 @@ export default function HoldersList({ initialHolders }: HoldersListProps) {
         <div className="text-red-500">
           Error loading holders data: {error instanceof Error ? error.message : 'Unknown error'}
         </div>
-        <pre className="text-sm text-gray-500 bg-gray-100 p-4 rounded">
-          {JSON.stringify(error, null, 2)}
-        </pre>
       </div>
     )
   }
@@ -88,7 +90,15 @@ export default function HoldersList({ initialHolders }: HoldersListProps) {
     <Card className="mb-4">
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle>All Holders ({data?.data?.total?.toLocaleString() || 0})</CardTitle>
+          <div className="space-y-1">
+            <CardTitle>All Holders ({data?.data?.total?.toLocaleString() || 0})</CardTitle>
+            {isLoadingMore && (
+              <div className="text-sm text-gray-500 flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Loading all holders...
+              </div>
+            )}
+          </div>
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input

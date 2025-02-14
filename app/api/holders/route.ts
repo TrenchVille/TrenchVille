@@ -1,5 +1,25 @@
 import { NextResponse } from "next/server"
 
+async function fetchHoldersPage(page: number, apiKey: string) {
+  const response = await fetch(
+    `https://pro-api.solscan.io/v2.0/token/holders?address=8aryhMEcqxsJdqZxEDfwKFKiHGyRJstuYXskYpsHpump&page=${page}&page_size=40`,
+    {
+      method: "GET",
+      headers: {
+        token: apiKey,
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(`API request failed for page ${page}`)
+  }
+
+  return response.json()
+}
+
 export async function GET() {
   if (!process.env.SOLSCAN_API_KEY) {
     return NextResponse.json(
@@ -9,49 +29,37 @@ export async function GET() {
   }
 
   try {
-    console.log('Fetching with API key:', process.env.SOLSCAN_API_KEY.substring(0, 10) + '...')
-    
-    const response = await fetch(
-      "https://pro-api.solscan.io/v2.0/token/holders?address=8aryhMEcqxsJdqZxEDfwKFKiHGyRJstuYXskYpsHpump&page=1&page_size=40",
-      {
-        method: "GET",
-        headers: {
-          token: process.env.SOLSCAN_API_KEY,
-          Accept: "application/json",
-          "Content-Type": "application/json",
-        },
-      }
-    )
+    // First, get the total number of holders
+    const firstPage = await fetchHoldersPage(1, process.env.SOLSCAN_API_KEY)
+    const totalHolders = firstPage.data.total
+    const totalPages = Math.ceil(totalHolders / 40)
 
-    const responseText = await response.text()
-    console.log('Raw response:', responseText)
+    console.log(`Total holders: ${totalHolders}, Total pages: ${totalPages}`)
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { 
-          error: "API request failed", 
-          status: response.status,
-          details: responseText
-        }, 
-        { status: response.status }
+    // Create an array of page numbers to fetch
+    const pagePromises = []
+    for (let page = 1; page <= totalPages; page++) {
+      // Add a small delay between requests to avoid rate limiting
+      const delay = (page - 1) * 100 // 100ms delay between requests
+      pagePromises.push(
+        new Promise(resolve => setTimeout(resolve, delay))
+          .then(() => fetchHoldersPage(page, process.env.SOLSCAN_API_KEY))
       )
     }
 
-    const data = JSON.parse(responseText)
-    console.log('Parsed data:', data)
+    // Fetch all pages in parallel with delay
+    const pages = await Promise.all(pagePromises)
 
-    if (!data?.data?.items) {
-      return NextResponse.json(
-        { error: "Invalid data format from API" }, 
-        { status: 500 }
-      )
-    }
+    // Combine all holders from all pages
+    const allHolders = pages.reduce((acc, page) => {
+      return acc.concat(page.data.items)
+    }, [])
 
     return NextResponse.json({
       success: true,
       data: {
-        total: data.data.total,
-        items: data.data.items
+        total: totalHolders,
+        items: allHolders
       }
     })
   } catch (error) {
