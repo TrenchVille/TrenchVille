@@ -21,6 +21,35 @@ const queryClient = new QueryClient({
   },
 })
 
+function SelectionArrow({ position }) {
+  const arrowRef = useRef()
+
+  useFrame(() => {
+    if (arrowRef.current) {
+      arrowRef.current.rotation.y += 0.02
+    }
+  })
+
+  return (
+    <group
+      ref={arrowRef}
+      position={[position[0], position[1] + 2, position[2]]}
+    >
+      {/* Arrow head (cone) */}
+      <mesh position={[0, -0.3, 0]} rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.15, 0.3, 32]} /> {/* Made cone smaller and more pointed */}
+        <meshStandardMaterial color="#3b82f6" />
+      </mesh>
+      
+      {/* Arrow shaft */}
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.05, 0.05, 0.6]} /> {/* Made shaft longer and thinner */}
+        <meshStandardMaterial color="#3b82f6" />
+      </mesh>
+    </group>
+  )
+}
+
 function CitizenInfoCard({ holder, position, onClose }) {
   const [show, setShow] = useState(false)
   
@@ -507,11 +536,14 @@ function Scene() {
             }}
           />
           {selectedCharacter?.cloneIndex === index && (
-            <CitizenInfoCard
-              holder={selectedCharacter.holderData}
-              position={selectedCharacter.position}
-              onClose={() => setSelectedCharacter(null)}
-            />
+            <>
+              <SelectionArrow position={selectedCharacter.position} />
+              <CitizenInfoCard
+                holder={selectedCharacter.holderData}
+                position={selectedCharacter.position}
+                onClose={() => setSelectedCharacter(null)}
+              />
+            </>
           )}
         </group>
       ))}
