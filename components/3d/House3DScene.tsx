@@ -552,7 +552,7 @@ function Scene() {
         enableZoom={true}
         enablePan={true}
         enableRotate={true}
-        zoomSpeed={0.5}
+        zoomSpeed={4}
         panSpeed={0.5}
         rotateSpeed={0.5}
         minDistance={1}
