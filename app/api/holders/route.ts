@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 async function fetchHoldersPage(page: number, apiKey: string) {
   const response = await fetch(
-    `https://pro-api.solscan.io/v2.0/token/holders?address=8aryhMEcqxsJdqZxEDfwKFKiHGyRJstuYXskYpsHpump&page=${page}&page_size=40`,
+    `https://pro-api.solscan.io/v2.0/token/holders?address=XAjRYkcpwJb2uoieZ56sFjfqMA4KYn6uXV6yj5kpump&page=${page}&page_size=40`,
     {
       method: "GET",
       headers: {
