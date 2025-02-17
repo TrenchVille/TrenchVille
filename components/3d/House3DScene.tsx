@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
-import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations } from "@react-three/drei"
+import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations, Html } from "@react-three/drei"
 import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
@@ -18,6 +18,104 @@ const queryClient = new QueryClient({
     },
   },
 })
+
+function CitizenInfoCard({ holder, position, onClose }) {
+  const [show, setShow] = useState(false)
+  
+  useEffect(() => {
+    setShow(true)
+  }, [])
+
+  if (!holder) return null
+
+  const amount = holder.amount / Math.pow(10, holder.decimals)
+  const totalSupply = holder.totalSupply
+  const percentage = ((amount / totalSupply) * 100).toFixed(2)
+
+  return (
+    <Html
+      position={position}
+      center
+      distanceFactor={10}
+      occlude={false}
+      zIndexRange={[16777271, 0]}
+      style={{
+        pointerEvents: 'auto',
+        transition: 'all 0.2s',
+        opacity: show ? 1 : 0,
+        transform: `translateY(-50px)`,
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(0, 0, 0, 0.8)",
+          padding: "12px",
+          borderRadius: "8px",
+          color: "white",
+          width: "300px",
+          fontSize: "14px",
+          backdropFilter: "blur(4px)",
+          boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+          position: 'relative',
+          pointerEvents: 'auto',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            onClose()
+          }}
+          style={{
+            position: "absolute",
+            right: "8px",
+            top: "8px",
+            background: "none",
+            border: "none",
+            color: "white",
+            cursor: "pointer",
+            fontSize: "16px",
+          }}
+        >
+          ×
+        </button>
+        <div style={{ marginBottom: "8px", fontWeight: "bold", color: "#3b82f6" }}>
+          🧑‍🦱 Citizen Information
+        </div>
+        <div style={{ marginBottom: "4px" }}>
+          <span style={{ color: "#10b981", fontWeight: "bold" }}>👛 Wallet: </span>
+          <span style={{ color: "#6366f1" }}>{holder.address.slice(0, 6)}...{holder.address.slice(-4)}</span>
+        </div>
+        <div style={{ marginBottom: "4px" }}>
+          <span style={{ color: "#f59e0b", fontWeight: "bold" }}>💰 Amount: </span>
+          <span style={{ color: "#6366f1" }}>{amount.toLocaleString()} tokens</span>
+        </div>
+        <div style={{ marginBottom: "4px" }}>
+          <span style={{ color: "#ec4899", fontWeight: "bold" }}>📊 Percentage: </span>
+          <span style={{ color: "#6366f1" }}>{percentage}%</span>
+        </div>
+        <div>
+          <span style={{ color: "#8b5cf6", fontWeight: "bold" }}>🏆 Rank: </span>
+          <span style={{ color: "#6366f1" }}>#{holder.rank}</span>
+        </div>
+        <a
+          href={`https://solscan.io/account/${holder.address}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "block",
+            marginTop: "8px",
+            color: "#3b82f6",
+            textDecoration: "none",
+            fontSize: "12px",
+          }}
+        >
+          View on Solscan ↗
+        </a>
+      </div>
+    </Html>
+  )
+}
 
 function useKeyboardControls() {
   const keys = useRef({
@@ -134,17 +232,21 @@ function Scene() {
   const moveSpeed = 0.2
   const spawnAreaRef = useRef(null)
   
-  const character1b = useGLTF("/models/character1b.glb")
-  const character2 = useGLTF("/models/character2.glb")
-  const character3 = useGLTF("/models/character3.glb")
+  // Load all 50 character models
+  const characterModels = useRef([])
+  const totalCharacters = 50
+
+  // Load all character models
+  for (let i = 1; i <= totalCharacters; i++) {
+    const model = useGLTF(`/models/character${i}.glb`)
+    characterModels.current.push({
+      scene: model.scene,
+      animations: model.animations
+    })
+  }
+
   const { scene: sidewalkScene } = useGLTF("/models/SidewalkSpawn.glb")
   
-  const characterModels = [
-    { scene: character1b.scene, animations: character1b.animations },
-    { scene: character2.scene, animations: character2.animations },
-    { scene: character3.scene, animations: character3.animations }
-  ]
-
   const mixersRef = useRef([])
   const clonedModelsRef = useRef([])
 
@@ -156,7 +258,6 @@ function Scene() {
         throw new Error('Failed to fetch holders')
       }
       const data = await response.json()
-      console.log('Holders data:', data)
       return data
     }
   })
@@ -194,43 +295,25 @@ function Scene() {
   }
 
   const handleCharacterSelect = (characterData) => {
-    setSelectedCharacter((prev) => prev?.cloneIndex === characterData.cloneIndex ? null : characterData)
-    
-    const holder = characterData.holderData
     const totalSupply = holdersData?.data?.items?.reduce((acc, h) => 
       acc + h.amount / Math.pow(10, h.decimals), 0
     ) || 0
-    
-    const amount = holder.amount / Math.pow(10, holder.decimals)
-    const percentage = totalSupply > 0 ? (amount / totalSupply * 100).toFixed(2) : '0'
-    
-    console.log('%c🧑‍🦱 Citizen Information', 'font-size: 14px; font-weight: bold; color: #3b82f6;')
-    console.log(
-      '%c👛 Wallet: %c' + holder.address,
-      'font-weight: bold; color: #10b981;',
-      'color: #6366f1; text-decoration: underline;'
-    )
-    console.log(
-      '%c💰 Amount: %c' + amount.toLocaleString() + ' tokens',
-      'font-weight: bold; color: #f59e0b;',
-      'color: #6366f1;'
-    )
-    console.log(
-      '%c📊 Percentage: %c' + percentage + '%',
-      'font-weight: bold; color: #ec4899;',
-      'color: #6366f1;'
-    )
-    console.log(
-      '%c🏆 Rank: %c#' + holder.rank,
-      'font-weight: bold; color: #8b5cf6;',
-      'color: #6366f1;'
-    )
-    console.log('\n')
-    console.log(
-      '%cView on Solscan: %c➜ https://solscan.io/account/' + holder.address,
-      'font-weight: bold;',
-      'color: #3b82f6; text-decoration: underline; cursor: pointer;'
-    )
+
+    setSelectedCharacter((prev) => {
+      const isDeselecting = prev?.cloneIndex === characterData.cloneIndex
+      
+      if (isDeselecting) {
+        return null
+      }
+
+      return {
+        ...characterData,
+        holderData: {
+          ...characterData.holderData,
+          totalSupply
+        }
+      }
+    })
   }
 
   useEffect(() => {
@@ -255,8 +338,8 @@ function Scene() {
     clonedModelsRef.current = []
 
     holdersData.data.items.forEach((holder, i) => {
-      const randomModelIndex = Math.floor(Math.random() * characterModels.length)
-      const selectedModel = characterModels[randomModelIndex]
+      const randomModelIndex = Math.floor(Math.random() * totalCharacters)
+      const selectedModel = characterModels.current[randomModelIndex]
 
       const clonedModel = SkeletonUtils.clone(selectedModel.scene)
       const position = getRandomPosition()
@@ -270,28 +353,24 @@ function Scene() {
         isClone: true,
         cloneIndex: i,
         characterType: randomModelIndex + 1,
-        holderData: {
-          address: holder.address,
-          amount: holder.amount,
-          decimals: 6,
-          rank: holder.rank
-        }
+        holderData: holder,
+        position: position
       }
 
       clonedModel.traverse((child) => {
         if (child instanceof THREE.Mesh) {
-          child.userData = {
-            ...clonedModel.userData,
-            clickable: true
-          }
+          child.userData = clonedModel.userData
+          child.layers.enable(0)
         }
       })
 
       const mixer = new THREE.AnimationMixer(clonedModel)
-      selectedModel.animations.forEach((clip) => {
-        const action = mixer.clipAction(clip)
-        action.play()
-      })
+      if (selectedModel.animations.length > 0) {
+        selectedModel.animations.forEach((clip) => {
+          const action = mixer.clipAction(clip)
+          action.play()
+        })
+      }
       mixersRef.current.push(mixer)
       clonedModelsRef.current.push(clonedModel)
 
@@ -314,7 +393,7 @@ function Scene() {
       mixersRef.current = []
       clonedModelsRef.current = []
     }
-  }, [character1b, character2, character3, scene, camera, holdersData, sidewalkScene])
+  }, [scene, camera, holdersData, sidewalkScene])
 
   useFrame((state, delta) => {
     mixersRef.current.forEach(mixer => mixer.update(delta))
@@ -364,31 +443,40 @@ function Scene() {
       <MapModel />
       <SidewalkSpawnArea />
       {clonedModelsRef.current.map((model, index) => (
-        <primitive 
-          key={index}
-          object={model}
-          onClick={(e) => {
-            e.stopPropagation()
-            let targetObject = e.object
-            while (targetObject && !targetObject.userData?.holderData) {
-              targetObject = targetObject.parent
-            }
-
-            if (targetObject?.userData?.holderData) {
-              console.log('Clicked on citizen:', targetObject.userData.holderData)
-              handleCharacterSelect({
-                cloneIndex: targetObject.userData.cloneIndex,
-                holderData: targetObject.userData.holderData
-              })
-            }
-          }}
-          onPointerOver={(e) => {
-            document.body.style.cursor = 'pointer'
-          }}
-          onPointerOut={(e) => {
-            document.body.style.cursor = 'auto'
-          }}
-        />
+        <group key={index}>
+          <primitive 
+            object={model}
+            onClick={(e) => {
+              e.stopPropagation()
+              const position = model.position.toArray()
+              const holderData = model.userData.holderData
+              
+              if (holderData) {
+                handleCharacterSelect({
+                  cloneIndex: model.userData.cloneIndex,
+                  holderData: {
+                    ...holderData,
+                    decimals: 6
+                  },
+                  position: [position[0], position[1] + 2, position[2]]
+                })
+              }
+            }}
+            onPointerOver={(e) => {
+              document.body.style.cursor = 'pointer'
+            }}
+            onPointerOut={(e) => {
+              document.body.style.cursor = 'auto'
+            }}
+          />
+          {selectedCharacter?.cloneIndex === index && (
+            <CitizenInfoCard
+              holder={selectedCharacter.holderData}
+              position={selectedCharacter.position}
+              onClose={() => setSelectedCharacter(null)}
+            />
+          )}
+        </group>
       ))}
       <OrbitControls 
         ref={controlsRef}
@@ -431,8 +519,9 @@ export default function MapScene() {
   )
 }
 
+// Preload all 50 character models
+for (let i = 1; i <= 50; i++) {
+  useGLTF.preload(`/models/character${i}.glb`)
+}
 useGLTF.preload("/models/Map.glb")
 useGLTF.preload("/models/SidewalkSpawn.glb")
-useGLTF.preload("/models/character1b.glb")
-useGLTF.preload("/models/character2.glb")
-useGLTF.preload("/models/character3.glb")
