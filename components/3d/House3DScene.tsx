@@ -9,6 +9,8 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
 import { useQuery } from "@tanstack/react-query"
 
+const TOTAL_SUPPLY = 1000000000 // 1 billion total supply
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -29,8 +31,6 @@ function CitizenInfoCard({ holder, position, onClose }) {
   if (!holder) return null
 
   const amount = holder.amount / Math.pow(10, holder.decimals)
-  const totalSupply = holder.totalSupply
-  const percentage = ((amount / totalSupply) * 100).toFixed(2)
 
   return (
     <Html
@@ -92,7 +92,7 @@ function CitizenInfoCard({ holder, position, onClose }) {
         </div>
         <div style={{ marginBottom: "4px" }}>
           <span style={{ color: "#ec4899", fontWeight: "bold" }}>📊 Percentage: </span>
-          <span style={{ color: "#6366f1" }}>{percentage}%</span>
+          <span style={{ color: "#6366f1" }}>{holder.percentage}%</span>
         </div>
         <div>
           <span style={{ color: "#8b5cf6", fontWeight: "bold" }}>🏆 Rank: </span>
@@ -224,19 +224,22 @@ function SidewalkSpawnArea() {
   return <group ref={groupRef} />
 }
 
+
 function Scene() {
-  const { camera, scene } = useThree()
+  const { camera, scene, gl } = useThree()
   const controlsRef = useRef()
   const [selectedCharacter, setSelectedCharacter] = useState(null)
   const keys = useKeyboardControls()
   const moveSpeed = 0.2
   const spawnAreaRef = useRef(null)
   
-  // Load all 50 character models
+  const canvasRef = useRef({ width: 0, height: 0 })
+  const raycaster = new THREE.Raycaster()
+  const pointer = new THREE.Vector2()
+  
   const characterModels = useRef([])
-  const totalCharacters = 50
+  const totalCharacters = 94
 
-  // Load all character models
   for (let i = 1; i <= totalCharacters; i++) {
     const model = useGLTF(`/models/character${i}.glb`)
     characterModels.current.push({
@@ -261,6 +264,55 @@ function Scene() {
       return data
     }
   })
+
+  useEffect(() => {
+    const updateCanvasSize = () => {
+      const canvas = gl.domElement
+      canvasRef.current = {
+        width: canvas.clientWidth,
+        height: canvas.clientHeight
+      }
+    }
+
+    updateCanvasSize()
+    window.addEventListener('resize', updateCanvasSize)
+    return () => window.removeEventListener('resize', updateCanvasSize)
+  }, [gl])
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      const canvas = gl.domElement
+      const rect = canvas.getBoundingClientRect()
+
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
+
+      raycaster.setFromCamera(pointer, camera)
+      const intersects = raycaster.intersectObjects(clonedModelsRef.current, true)
+
+      if (intersects.length > 0) {
+        let targetObject = intersects[0].object
+        
+        while (targetObject && !targetObject.userData?.holderData) {
+          targetObject = targetObject.parent
+        }
+
+        if (targetObject?.userData?.holderData) {
+          const worldPosition = new THREE.Vector3()
+          targetObject.getWorldPosition(worldPosition)
+          
+          handleCharacterSelect({
+            cloneIndex: targetObject.userData.cloneIndex,
+            holderData: targetObject.userData.holderData,
+            position: [worldPosition.x, worldPosition.y + 3, worldPosition.z]
+          })
+        }
+      }
+    }
+
+    window.addEventListener('click', handleClick)
+    return () => window.removeEventListener('click', handleClick)
+  }, [camera, gl])
 
   const getRandomPosition = () => {
     if (!sidewalkScene) return [0, -2, 0]
@@ -295,10 +347,6 @@ function Scene() {
   }
 
   const handleCharacterSelect = (characterData) => {
-    const totalSupply = holdersData?.data?.items?.reduce((acc, h) => 
-      acc + h.amount / Math.pow(10, h.decimals), 0
-    ) || 0
-
     setSelectedCharacter((prev) => {
       const isDeselecting = prev?.cloneIndex === characterData.cloneIndex
       
@@ -306,11 +354,16 @@ function Scene() {
         return null
       }
 
+      const amount = characterData.holderData.amount / Math.pow(10, 6) // Convert to actual token amount
+      const percentage = ((amount / TOTAL_SUPPLY) * 100).toFixed(2)
+
       return {
         ...characterData,
         holderData: {
           ...characterData.holderData,
-          totalSupply
+          decimals: 6,
+          totalSupply: TOTAL_SUPPLY,
+          percentage: percentage
         }
       }
     })
@@ -446,22 +499,6 @@ function Scene() {
         <group key={index}>
           <primitive 
             object={model}
-            onClick={(e) => {
-              e.stopPropagation()
-              const position = model.position.toArray()
-              const holderData = model.userData.holderData
-              
-              if (holderData) {
-                handleCharacterSelect({
-                  cloneIndex: model.userData.cloneIndex,
-                  holderData: {
-                    ...holderData,
-                    decimals: 6
-                  },
-                  position: [position[0], position[1] + 2, position[2]]
-                })
-              }
-            }}
             onPointerOver={(e) => {
               document.body.style.cursor = 'pointer'
             }}
@@ -519,8 +556,8 @@ export default function MapScene() {
   )
 }
 
-// Preload all 50 character models
-for (let i = 1; i <= 50; i++) {
+// Preload all 94 character models
+for (let i = 1; i <= 94; i++) {
   useGLTF.preload(`/models/character${i}.glb`)
 }
 useGLTF.preload("/models/Map.glb")
