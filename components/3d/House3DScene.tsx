@@ -3,7 +3,9 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { useEffect, useRef, useState } from "react"
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
-import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations, Html } from "@react-three/drei"
+import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations, Html, Sky } from "@react-three/drei"
+import { EffectComposer, Bloom, ChromaticAberration, Noise } from "@react-three/postprocessing"
+import { BlendFunction } from "postprocessing"
 import * as THREE from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
 import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
@@ -21,6 +23,46 @@ const queryClient = new QueryClient({
   },
 })
 
+function Sun() {
+  const sunRef = useRef()
+  const glowRef = useRef()
+
+  useFrame(({ clock }) => {
+    const time = clock.getElapsedTime()
+    if (sunRef.current) {
+      sunRef.current.rotation.z = time * 0.2
+    }
+    if (glowRef.current) {
+      glowRef.current.scale.set(
+        1 + Math.sin(time) * 0.05,
+        1 + Math.sin(time) * 0.05,
+        1
+      )
+    }
+  })
+
+  return (
+    <group position={[50, 50, -50]}>
+      {/* Main sun sphere */}
+      <mesh ref={sunRef}>
+        <sphereGeometry args={[10, 32, 32]} />
+        <meshBasicMaterial color="#FDB813" />
+      </mesh>
+      
+      {/* Glow effect */}
+      <mesh ref={glowRef}>
+        <sphereGeometry args={[12, 32, 32]} />
+        <meshBasicMaterial
+          color="#FDB813"
+          transparent
+          opacity={0.4}
+          side={THREE.BackSide}
+        />
+      </mesh>
+    </group>
+  )
+}
+
 function SelectionArrow({ position }) {
   const arrowRef = useRef()
 
@@ -35,15 +77,13 @@ function SelectionArrow({ position }) {
       ref={arrowRef}
       position={[position[0], position[1] + 2, position[2]]}
     >
-      {/* Arrow head (cone) */}
       <mesh position={[0, -0.3, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[0.15, 0.3, 32]} /> {/* Made cone smaller and more pointed */}
+        <coneGeometry args={[0.15, 0.3, 32]} />
         <meshStandardMaterial color="#3b82f6" />
       </mesh>
       
-      {/* Arrow shaft */}
       <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.6]} /> {/* Made shaft longer and thinner */}
+        <cylinderGeometry args={[0.05, 0.05, 0.6]} />
         <meshStandardMaterial color="#3b82f6" />
       </mesh>
     </group>
@@ -253,7 +293,6 @@ function SidewalkSpawnArea() {
   return <group ref={groupRef} />
 }
 
-
 function Scene() {
   const { camera, scene, gl } = useThree()
   const controlsRef = useRef()
@@ -383,7 +422,7 @@ function Scene() {
         return null
       }
 
-      const amount = characterData.holderData.amount / Math.pow(10, 6) // Convert to actual token amount
+      const amount = characterData.holderData.amount / Math.pow(10, 6)
       const percentage = ((amount / TOTAL_SUPPLY) * 100).toFixed(2)
 
       return {
@@ -516,12 +555,24 @@ function Scene() {
 
   return (
     <>
-      <ambientLight intensity={1} />
+      <Sky
+        distance={450000}
+        sunPosition={[50, 50, -50]}
+        inclination={0.5}
+        azimuth={0.25}
+        mieCoefficient={0.001}
+        mieDirectionalG={0.99}
+        rayleigh={0.2}
+        turbidity={10}
+      />
+      <fog attach="fog" args={["#b1e1ff", 100, 500]} />
+      <ambientLight intensity={0.4} />
       <directionalLight 
         intensity={1.5}
         position={[10, 20, 20]}
         castShadow
       />
+      <Sun />
       <MapModel />
       <SidewalkSpawnArea />
       {clonedModelsRef.current.map((model, index) => (
@@ -561,6 +612,24 @@ function Scene() {
         maxPolarAngle={Math.PI / 2}
         target={[0, 0, 10]}
       />
+      <EffectComposer>
+        <Bloom 
+          intensity={0.3}
+          luminanceThreshold={1.2}
+          luminanceSmoothing={0.4}
+          mipmapBlur={false}
+        />
+        <ChromaticAberration
+          offset={[0, 0]}
+          blendFunction={BlendFunction.NORMAL}
+          radialModulation={false}
+        />
+        <Noise
+          opacity={0.02}
+          blendFunction={BlendFunction.OVERLAY}
+          premultiply
+        />
+      </EffectComposer>
     </>
   )
 }
