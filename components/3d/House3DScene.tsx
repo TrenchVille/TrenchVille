@@ -1,19 +1,32 @@
 
 "use client"
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+// Core imports
 import { useEffect, useRef, useState } from "react"
+import * as THREE from "three"
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
+import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
+
+// React Three Fiber & Drei imports
 import { Canvas, useThree, useFrame } from "@react-three/fiber"
 import { OrbitControls, PerspectiveCamera, useGLTF, useAnimations, Html, Sky, Stars } from "@react-three/drei"
 import { EffectComposer, Bloom, ChromaticAberration, Noise } from "@react-three/postprocessing"
 import { BlendFunction } from "postprocessing"
-import * as THREE from "three"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader"
-import * as SkeletonUtils from "three/examples/jsm/utils/SkeletonUtils"
-import { useQuery } from "@tanstack/react-query"
 
+// Query imports
+import { QueryClient, QueryClientProvider, useQuery } from "@tanstack/react-query"
+
+// Constants
 const TOTAL_SUPPLY = 1000000000
+const ARROW_COLOR = {
+  base: '#22c55e',     // Base green color
+  emissive: '#4ade80', // Emissive green color
+  intensity: 2,        // Base emission intensity
+  metalness: 0.7,      // Material metalness
+  roughness: 0.2       // Material roughness
+}
 
+// Query client configuration
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -24,6 +37,7 @@ const queryClient = new QueryClient({
   },
 })
 
+// Night sky component with rotating stars
 function NightSky() {
   const starsRef1 = useRef()
   const starsRef2 = useRef()
@@ -63,6 +77,7 @@ function NightSky() {
   )
 }
 
+// Building lights configuration for night mode
 function BuildingLights() {
   const lights = [
     { p: [10, 2, 10], c: "#ffb224", i: 1.5 },
@@ -94,12 +109,13 @@ function BuildingLights() {
   )
 }
 
+// Moon component with craters and glow effect
 function Moon() {
   const moonRef = useRef()
   const moonGlowRef = useRef()
   const craterRefs = useRef([])
   
-  // Crater data: [x, y, z, radius, depth]
+  // Crater configurations: [x, y, z, size, depth]
   const craters = [
     [0.3, 0.2, 0.48, 0.15, 0.02],
     [-0.2, 0.4, 0.45, 0.12, 0.015],
@@ -113,8 +129,8 @@ function Moon() {
     [-0.25, -0.35, 0.44, 0.12, 0.017]
   ]
 
+  // Initialize moon texture and material
   useEffect(() => {
-    // Create base moon material
     if (moonRef.current) {
       moonRef.current.material = new THREE.MeshStandardMaterial({
         color: "#C2C5CC",
@@ -123,17 +139,16 @@ function Moon() {
         bumpScale: 0.02,
       })
 
-      // Create procedural texture
+      // Create procedural moon texture
       const canvas = document.createElement('canvas')
       canvas.width = 1024
       canvas.height = 1024
       const ctx = canvas.getContext('2d')
       
-      // Base color
       ctx.fillStyle = '#C2C5CC'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
 
-      // Add noise and variations
+      // Add random crater-like details
       for (let i = 0; i < 10000; i++) {
         const x = Math.random() * canvas.width
         const y = Math.random() * canvas.height
@@ -146,28 +161,25 @@ function Moon() {
         ctx.fill()
       }
 
-      // Create texture from canvas
       const texture = new THREE.CanvasTexture(canvas)
       moonRef.current.material.map = texture
       texture.needsUpdate = true
     }
   }, [])
 
+  // Animate moon and craters
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     
     if (moonRef.current) {
-      // Slow rotation
       moonRef.current.rotation.y = t * 0.05
     }
     
     if (moonGlowRef.current) {
-      // Subtle glow pulsing
       const glowScale = 1 + Math.sin(t * 0.5) * 0.03
       moonGlowRef.current.scale.set(glowScale, glowScale, glowScale)
     }
 
-    // Animate craters slightly
     craterRefs.current.forEach((crater, i) => {
       if (crater) {
         crater.scale.y = 1 + Math.sin(t * 0.5 + i) * 0.02
@@ -177,7 +189,6 @@ function Moon() {
 
   return (
     <group>
-      {/* Main moon sphere */}
       <mesh ref={moonRef}>
         <sphereGeometry args={[8, 64, 64]} />
         <meshStandardMaterial
@@ -187,7 +198,6 @@ function Moon() {
         />
       </mesh>
 
-      {/* Craters */}
       {craters.map((crater, index) => (
         <mesh
           key={index}
@@ -203,7 +213,6 @@ function Moon() {
         </mesh>
       ))}
 
-      {/* Atmospheric glow */}
       <mesh ref={moonGlowRef}>
         <sphereGeometry args={[8.4, 32, 32]} />
         <meshBasicMaterial
@@ -217,13 +226,14 @@ function Moon() {
   )
 }
 
+// Sun component with day/night transition
 function Sun({ isNight }) {
   const sunRef = useRef()
   const sunGlowRef = useRef()
   const moonGroupRef = useRef()
-  const transitionTime = 10
   const [transitionProgress, setTransitionProgress] = useState(isNight ? 1 : 0)
 
+  // Handle day/night transition
   useEffect(() => {
     const targetProgress = isNight ? 1 : 0
     const startProgress = transitionProgress
@@ -244,6 +254,7 @@ function Sun({ isNight }) {
     animate()
   }, [isNight])
 
+  // Animate sun and moon positions
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
     
@@ -262,6 +273,7 @@ function Sun({ isNight }) {
     const sunOpacity = Math.max(0, Math.min(1, (sunY + 25) / 50))
     const moonOpacity = Math.max(0, Math.min(1, (moonY + 25) / 50))
 
+    // Update sun position and visibility
     if (sunRef.current) {
       sunRef.current.position.x = sunX
       sunRef.current.position.y = sunY
@@ -269,12 +281,14 @@ function Sun({ isNight }) {
       sunRef.current.visible = sunOpacity > 0.01
     }
 
+    // Update moon position and visibility
     if (moonGroupRef.current) {
       moonGroupRef.current.position.x = moonX
       moonGroupRef.current.position.y = moonY
       moonGroupRef.current.visible = moonOpacity > 0.01
     }
 
+    // Update sun glow effect
     if (sunGlowRef.current) {
       const glowScale = 1 + Math.sin(t) * 0.05
       sunGlowRef.current.scale.set(glowScale, glowScale, 1)
@@ -287,7 +301,6 @@ function Sun({ isNight }) {
 
   return (
     <group position={[0, 0, -50]}>
-      {/* Sun */}
       <mesh ref={sunRef}>
         <sphereGeometry args={[10, 32, 32]} />
         <meshBasicMaterial 
@@ -306,7 +319,6 @@ function Sun({ isNight }) {
         />
       </mesh>
 
-      {/* Moon Group */}
       <group ref={moonGroupRef}>
         <Moon />
       </group>
@@ -314,27 +326,68 @@ function Sun({ isNight }) {
   )
 }
 
+// Selection arrow component that appears above selected characters
 function SelectionArrow({ position }) {
   const ref = useRef()
+  const { scene } = useGLTF("/textures/arrow.glb")
 
-  useFrame(() => {
-    if (ref.current) ref.current.rotation.y += 0.02
+  useEffect(() => {
+    if (ref.current) {
+      const fixedScale = 2.5
+
+      scene.scale.set(fixedScale, fixedScale, fixedScale)
+      scene.rotation.set(0, 0, -Math.PI/2)
+
+      // Apply consistent green material to all arrow meshes
+      scene.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: ARROW_COLOR.base,
+            emissive: ARROW_COLOR.emissive,
+            emissiveIntensity: ARROW_COLOR.intensity,
+            metalness: ARROW_COLOR.metalness,
+            roughness: ARROW_COLOR.roughness,
+            toneMapped: false
+          })
+        }
+      })
+    }
+  }, [scene])
+
+  useFrame((state) => {
+    if (ref.current) {
+      // Rotate and bob the arrow
+      ref.current.rotation.y += 0.02
+      ref.current.position.y = position[1] + 8 + Math.sin(Date.now() * 0.003) * 0.5
+
+      // Pulse the emission intensity
+      scene.traverse((child) => {
+        if (child.isMesh && child.material) {
+          child.material.emissiveIntensity = ARROW_COLOR.intensity * (0.75 + Math.sin(state.clock.elapsedTime * 2) * 0.25)
+        }
+      })
+    }
   })
 
   return (
-    <group ref={ref} position={[position[0], position[1] + 2, position[2]]}>
-      <mesh position={[0, -0.3, 0]} rotation={[Math.PI, 0, 0]}>
-        <coneGeometry args={[0.15, 0.3, 32]} />
-        <meshStandardMaterial color="#3b82f6" />
-      </mesh>
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.05, 0.05, 0.6]} />
-        <meshStandardMaterial color="#3b82f6" />
-      </mesh>
-    </group>
+    <>
+      <group 
+        ref={ref} 
+        position={[position[0], position[1] + 8, position[2]]}
+      >
+        <primitive object={scene.clone()} />
+      </group>
+      <pointLight
+        position={[position[0], position[1] + 8, position[2]]}
+        color={ARROW_COLOR.emissive}
+        intensity={ARROW_COLOR.intensity}
+        distance={10}
+      />
+    </>
   )
 }
 
+// Information card that displays holder details
 function CitizenInfoCard({ holder, position, onClose }) {
   const [show, setShow] = useState(false)
 
@@ -431,6 +484,7 @@ function CitizenInfoCard({ holder, position, onClose }) {
   )
 }
 
+// 3D map model with dynamic lighting
 function MapModel() {
   const groupRef = useRef()
   const { scene } = useGLTF("/models/Map.glb")
@@ -442,6 +496,7 @@ function MapModel() {
     scene.scale.set(0.3, 0.3, 0.3)
     scene.position.set(0, -2, 0)
 
+    // Process materials for windows and light posts
     scene.traverse(child => {
       if (child instanceof THREE.Mesh) {
         const isWindow = (child.name.toLowerCase().includes('window') ||
@@ -494,6 +549,7 @@ function MapModel() {
     }
   }, [scene])
 
+  // Update materials based on night mode
   useEffect(() => {
     scene.traverse(child => {
       if (child instanceof THREE.Mesh) {
@@ -507,6 +563,7 @@ function MapModel() {
     })
   }, [isNightMode, scene])
 
+  // Listen for night mode changes
   useEffect(() => {
     const handleNightModeChange = e => {
       if (e.detail) setIsNightMode(e.detail.isNight)
@@ -519,6 +576,7 @@ function MapModel() {
   return <group ref={groupRef} />
 }
 
+// Sidewalk spawn area for characters
 function SidewalkSpawnArea() {
   const groupRef = useRef()
   const { scene } = useGLTF("/models/SidewalkSpawn.glb")
@@ -532,6 +590,7 @@ function SidewalkSpawnArea() {
 
     boundsRef.current = new THREE.Box3().setFromObject(scene)
 
+    // Make spawn area invisible but keep collision
     scene.traverse(child => {
       if (child instanceof THREE.Mesh) {
         child.material = new THREE.MeshBasicMaterial({
@@ -560,6 +619,7 @@ function SidewalkSpawnArea() {
   return <group ref={groupRef} />
 }
 
+// Keyboard controls hook for camera movement
 function useKeyboardControls() {
   const keys = useRef({
     w: false,
@@ -593,6 +653,7 @@ function useKeyboardControls() {
   return keys
 }
 
+// Main scene component
 function Scene() {
   const { camera, scene, gl } = useThree()
   const controlsRef = useRef()
@@ -607,6 +668,7 @@ function Scene() {
   const characterModels = useRef([])
   const totalCharacters = 94
 
+  // Day/night cycle
   useEffect(() => {
     const interval = setInterval(() => setIsNight(prev => !prev), 10000)
     return () => clearInterval(interval)
@@ -616,6 +678,7 @@ function Scene() {
     window.dispatchEvent(new CustomEvent('nightModeChange', { detail: { isNight } }))
   }, [isNight])
 
+  // Load character models
   for (let i = 1; i <= totalCharacters; i++) {
     const model = useGLTF(`/models/character${i}.glb`)
     characterModels.current.push({
@@ -628,6 +691,7 @@ function Scene() {
   const mixersRef = useRef([])
   const clonedModelsRef = useRef([])
 
+  // Fetch holders data
   const { data: holdersData, isLoading, error } = useQuery({
     queryKey: ['holders'],
     queryFn: async () => {
@@ -637,6 +701,7 @@ function Scene() {
     },
   })
 
+  // Handle canvas resize
   useEffect(() => {
     const updateCanvasSize = () => {
       const canvas = gl.domElement
@@ -651,6 +716,7 @@ function Scene() {
     return () => window.removeEventListener('resize', updateCanvasSize)
   }, [gl])
 
+  // Handle character selection
   useEffect(() => {
     const handleClick = event => {
       const canvas = gl.domElement
@@ -685,6 +751,7 @@ function Scene() {
     return () => window.removeEventListener('click', handleClick)
   }, [camera, gl])
 
+  // Get random position for character spawning
   const getRandomPosition = () => {
     if (!sidewalkScene) return [0, -2, 0]
 
@@ -713,6 +780,7 @@ function Scene() {
     return [0, -2, 0]
   }
 
+  // Handle character selection
   const handleCharacterSelect = characterData => {
     setSelectedCharacter(prev => {
       const isDeselecting = prev?.cloneIndex === characterData.cloneIndex
@@ -734,12 +802,14 @@ function Scene() {
     })
   }
 
+  // Initialize and update characters
   useEffect(() => {
     if (!holdersData?.data?.items || !sidewalkScene) return
 
     camera.position.set(15, 15, 25)
     camera.lookAt(0, 0, 10)
 
+    // Cleanup previous models
     clonedModelsRef.current.forEach(model => {
       scene.remove(model)
       model.traverse(child => {
@@ -754,6 +824,7 @@ function Scene() {
     mixersRef.current = []
     clonedModelsRef.current = []
 
+    // Create new models
     holdersData.data.items.forEach((holder, i) => {
       const randomModelIndex = Math.floor(Math.random() * totalCharacters)
       const selectedModel = characterModels.current[randomModelIndex]
@@ -809,6 +880,7 @@ function Scene() {
     }
   }, [scene, camera, holdersData, sidewalkScene])
 
+  // Handle camera movement and animations
   useFrame((state, delta) => {
     mixersRef.current.forEach(mixer => mixer.update(delta))
 
@@ -941,6 +1013,7 @@ function Scene() {
   )
 }
 
+// Canvas content wrapper
 function MapSceneContent() {
   return (
     <Canvas shadows>
@@ -956,6 +1029,7 @@ function MapSceneContent() {
   )
 }
 
+// Main component export
 export default function MapScene() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -970,3 +1044,4 @@ for (let i = 1; i <= 94; i++) {
 }
 useGLTF.preload("/models/Map.glb")
 useGLTF.preload("/models/SidewalkSpawn.glb")
+useGLTF.preload("/textures/arrow.glb")
