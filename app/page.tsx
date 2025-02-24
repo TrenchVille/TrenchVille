@@ -1,10 +1,8 @@
 "use client"
 
 import type React from "react"
-
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import dynamic from "next/dynamic"
-import { useRouter } from "next/navigation"
 import { ProgressPanel } from "@/components/ProgressPanel"
 import { InfoFAQ } from "@/components/InfoFAQ"
 import { useStore } from "@/lib/store"
@@ -19,18 +17,9 @@ const House3DScene = dynamic(() => import("@/components/3d/House3DScene"), {
 export default function ThreeDPage() {
   const [message, setMessage] = useState("")
   const [showResponse, setShowResponse] = useState(false)
-  const [mounted, setMounted] = useState(false)
   const addReview = useStore((state) => state.addReview)
   const reviews = useStore((state) => state.reviews)
   const { connected, publicKey } = useWallet()
-  const router = useRouter()
-
-  useEffect(() => {
-    setMounted(true)
-    // Refresh the page when entering the dashboard
-    router.refresh()
-    return () => setMounted(false)
-  }, [router])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -73,7 +62,9 @@ export default function ThreeDPage() {
 
       {/* Main Content */}
       <main className="flex-1 ml-64 mr-64 min-h-[calc(100vh-4rem)] relative">
-        <div className="h-[calc(100vh-8rem)]">{mounted && <House3DScene key="house3d-scene" />}</div>
+        <div className="h-[calc(100vh-8rem)]">
+          <House3DScene key="house3d-scene" />
+        </div>
 
         {/* Response Message */}
         {showResponse && (
@@ -121,4 +112,3 @@ export default function ThreeDPage() {
     </div>
   )
 }
-
