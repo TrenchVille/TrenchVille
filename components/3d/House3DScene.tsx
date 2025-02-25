@@ -26,6 +26,27 @@ const ARROW_COLOR = {
   roughness: 0.2       // Material roughness
 }
 
+// Helper function to get EST time
+function getESTTime() {
+  const now = new Date()
+  const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }))
+  return {
+    hours: est.getHours(),
+    minutes: est.getMinutes(),
+    seconds: est.getSeconds()
+  }
+}
+
+// Helper function to format time
+function formatTime(date: Date) {
+  return date.toLocaleString('en-US', { 
+    timeZone: 'America/New_York',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true 
+  })
+}
+
 // Query client configuration
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -658,7 +679,11 @@ function Scene() {
   const { camera, scene, gl } = useThree()
   const controlsRef = useRef()
   const [selectedCharacter, setSelectedCharacter] = useState(null)
-  const [isNight, setIsNight] = useState(false)
+  const [currentTime, setCurrentTime] = useState(getESTTime())
+  const [isNight, setIsNight] = useState(() => {
+    const estTime = getESTTime()
+    return estTime.minutes >= 40
+  })
   const keys = useKeyboardControls()
   const moveSpeed = 0.2
   const spawnAreaRef = useRef(null)
@@ -668,9 +693,15 @@ function Scene() {
   const characterModels = useRef([])
   const totalCharacters = 94
 
-  // Day/night cycle
+  // Update time and day/night cycle
   useEffect(() => {
-    const interval = setInterval(() => setIsNight(prev => !prev), 10000)
+    const interval = setInterval(() => {
+      const estTime = getESTTime()
+      setCurrentTime(estTime)
+      // Set to night if we're in the last 20 minutes of the hour
+      setIsNight(estTime.minutes >= 40)
+    }, 1000)
+
     return () => clearInterval(interval)
   }, [])
 
@@ -915,6 +946,8 @@ function Scene() {
 
   return (
     <>
+      
+
       {isNight ? (
         <>
           <color attach="background" args={["#001429"]} />
@@ -951,6 +984,7 @@ function Scene() {
           />
         </>
       )}
+
       <Sun isNight={isNight} />
       <MapModel />
       <SidewalkSpawnArea />
