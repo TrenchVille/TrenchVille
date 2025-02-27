@@ -22,12 +22,9 @@ function getESTTime() {
 export function ProgressPanel() {
   const [marketCap, setMarketCap] = useState<number | null>(null)
   const [holders, setHolders] = useState<number | null>(null)
+  const [totalProposals, setTotalProposals] = useState<number>(0)
   const [currentTime, setCurrentTime] = useState(getESTTime())
-  const reviews = useStore((state) => state.reviews)
   
-  // Get total number of suggestions
-  const totalSuggestions = reviews.length
-
   useEffect(() => {
     // Update EST time every second
     const timeInterval = setInterval(() => {
@@ -36,10 +33,18 @@ export function ProgressPanel() {
 
     const fetchData = async () => {
       try {
-        const response = await fetch("/api/token-metadata")
-        const data = await response.json()
-        setMarketCap(data.data?.market_cap ? Number(data.data.market_cap) : null)
-        setHolders(data.data?.holder ? Number(data.data.holder) : null)
+        // Fetch token metadata
+        const metadataResponse = await fetch("/api/token-metadata")
+        const metadataData = await metadataResponse.json()
+        setMarketCap(metadataData.data?.market_cap ? Number(metadataData.data.market_cap) : null)
+        setHolders(metadataData.data?.holder ? Number(metadataData.data.holder) : null)
+
+        // Fetch total proposals from the API
+        const proposalsResponse = await fetch("/api/proposals")
+        const proposalsData = await proposalsResponse.json()
+        if (proposalsData.success && Array.isArray(proposalsData.data)) {
+          setTotalProposals(proposalsData.data.length)
+        }
       } catch (error) {
         console.error("Error fetching data:", error)
       }
@@ -95,13 +100,13 @@ export function ProgressPanel() {
                 Suggestions
               </div>
               <div className="text-right">
-                <div>{totalSuggestions}</div>
+                <div>{totalProposals}</div>
                 <div className="text-xs text-gray-500">Target: 2000/day</div>
               </div>
             </div>
             
             <Progress 
-              value={(totalSuggestions / 2000) * 100} 
+              value={(totalProposals / 2000) * 100} 
               className="h-2"
             />
 

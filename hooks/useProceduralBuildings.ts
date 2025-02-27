@@ -27,4 +27,3 @@ export function useProceduralBuildings(count: number, areaSize: number) {
     })
   }, [count, areaSize])
 }
-
