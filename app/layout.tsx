@@ -1,14 +1,17 @@
+"use client"
+
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import Link from "next/link"
 import { ConnectWallet } from "@/components/ConnectWallet"
 import dynamic from "next/dynamic"
+import { usePathname } from "next/navigation"
 import type React from "react"
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata: Metadata = {
+const metadata = {
   title: "TrenchVille",
   description: "TrenchVille Dashboard",
 }
@@ -31,9 +34,9 @@ const Navigation = () => {
 
       <div className="flex items-center gap-8">
         <Link 
-          href="/"
+          href="/dashboard"
           className="text-sm hover:text-white/80"
-          prefetch={false} // Disable prefetching to ensure proper cleanup
+          prefetch={false}
         >
           Dashboard
         </Link>
@@ -57,14 +60,19 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname()
+  const isHomePage = pathname === "/"
+  
   return (
     <html lang="en" className="dark">
       <body className={`${inter.className} bg-black text-white`}>
         <DynamicWalletProvider>
-          <header className="fixed top-0 w-full bg-black border-b border-white/10 z-50">
-            <Navigation />
-          </header>
-          <div className="pt-16 min-h-screen">{children}</div>
+          {!isHomePage && (
+            <header className="fixed top-0 w-full bg-black border-b border-white/10 z-50">
+              <Navigation />
+            </header>
+          )}
+          <div className={isHomePage ? "" : "pt-16 min-h-screen"}>{children}</div>
         </DynamicWalletProvider>
       </body>
     </html>
