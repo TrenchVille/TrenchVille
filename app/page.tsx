@@ -122,6 +122,7 @@ export default function EntryPage() {
             priority
           />
           <p className="mt-2 text-lg text-gray-300">A place for Solana Degens</p>
+          <p className="mt-2 text-lg text-gray-300">CA:</p>
         </div>
         
         {/* Enter Button using Image */}
