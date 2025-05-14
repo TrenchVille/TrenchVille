@@ -169,14 +169,14 @@ export default function TownHallPage() {
         <h1 className="text-3xl font-bold mb-8 text-center">Town Hall</h1>
         
         {!connected && (
-          <div className="text-center mb-8 p-4 bg-yellow-500/10 text-yellow-500 rounded-lg">
+          <div className="text-center mb-8 p-4 text-white bg-red-600 hover:bg-red-500 rounded-lg">
             Connect your wallet to view and participate in voting. 
             Without connecting, you're limited to 1 suggestion.
           </div>
         )}
 
         {connected && hasVotedOnAny && (
-          <div className="text-center mb-8 p-4 bg-purple-500/10 text-purple-200 rounded-lg">
+          <div className="text-center mb-8 p-4 text-white bg-red-600 hover:bg-red-500 rounded-lg">
             Thank you for participating! Your vote has been registered.
           </div>
         )}
@@ -224,7 +224,7 @@ export default function TownHallPage() {
                 className={`px-6 py-2 rounded-lg transition-colors ${
                   hasReachedProposalLimit 
                     ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-purple-600 hover:bg-purple-700'
+                    : 'text-white bg-red-600 hover:bg-red-500'
                 }`}
                 disabled={hasReachedProposalLimit}
               >

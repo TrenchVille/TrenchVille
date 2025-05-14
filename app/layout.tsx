@@ -42,14 +42,8 @@ const Navigation = () => {
         <Link href="/town-hall" className="text-sm hover:text-white/80" prefetch={false}>
           Town Hall
         </Link>
-        <Link href="/api" className="text-sm hover:text-white/80" prefetch={false}>
-          API
-        </Link>
-        <Link href="/Holders" className="text-sm hover:text-white/80" prefetch={false}>
-          Holders
-        </Link>
         <Link 
-          href="https://dexscreener.com/" 
+          href="https://axiom.trade/meme/XXXX" 
           target="_blank"
           className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
         >

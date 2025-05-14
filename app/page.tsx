@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Image from "next/image"
+import { toast } from "sonner" // Añade esta importación
 
 export default function EntryPage() {
   const router = useRouter()
@@ -92,12 +93,12 @@ export default function EntryPage() {
               DEXSCREENER
             </Link>
             <Link 
-              href="https://dextools.io" 
+              href="https://github.com" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
-              DEXTOOLS
+              GITHUB
             </Link>
           </nav>
           
@@ -122,7 +123,22 @@ export default function EntryPage() {
             priority
           />
           <p className="mt-2 text-lg text-gray-300">A place for Solana Degens</p>
-          <p className="mt-2 text-lg text-gray-300">CA:</p>
+          <div className="mt-2 flex items-center justify-center bg-black/70 px-3 py-1 rounded-md">
+            <span className="text-gray-400 mr-2">Contract:</span>
+            <span className="text-gray-300 font-mono">XXXX...XXXX</span>
+            <button 
+              className="ml-2 text-gray-400 hover:text-white text-xs"
+              onClick={() => {
+                navigator.clipboard.writeText("XXXX...XXXX");
+                toast.success("Contract address copied to clipboard!");
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 3H9C7.89543 3 7 3.89543 7 5V15C7 16.1046 7.89543 17 9 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+          </div>          
         </div>
         
         {/* Enter Button using Image */}
@@ -138,13 +154,13 @@ export default function EntryPage() {
         </div>
         
         {/* Social Links */}
-        <div className="flex space-x-8">
+        <div className="flex space-x-14">
           <Link href="https://x.com" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/xx.png"
               alt="X"
-              width={132}
-              height={162}
+              width={50}
+              height={50}
               className="w-18 h-18"
             />
           </Link>
@@ -152,17 +168,17 @@ export default function EntryPage() {
           <Image
               src="/assets/dexscreener.png"
               alt="dexscreener"
-              width={132}
-              height={162}
+              width={50}
+              height={50}
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://dextools.io" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://github.com/" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
-              src="/assets/dex.png"
-              alt="dextools"
-              width={132}
-              height={162}
+              src="/assets/github.png"
+              alt="github"
+              width={50}
+              height={50}
               className="w-18 h-18"
             />
           </Link>

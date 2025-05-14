@@ -35,6 +35,28 @@ export function ProgressPanel() {
   const [holders, setHolders] = useState<number | null>(null)
   const [totalProposals, setTotalProposals] = useState<number>(0)
   const [currentTime, setCurrentTime] = useState(getUTCTime())
+  const [refreshProgress, setRefreshProgress] = useState(0)
+  const [secondsUntilRefresh, setSecondsUntilRefresh] = useState(60)
+  
+  // Function to fetch data from API
+  const fetchData = async () => {
+    try {
+      // Fetch token metadata
+      const metadataResponse = await fetch("/api/token-metadata")
+      const metadataData = await metadataResponse.json()
+      setMarketCap(metadataData.data?.market_cap ? Number(metadataData.data.market_cap) : null)
+      setHolders(metadataData.data?.holder ? Number(metadataData.data.holder) : null)
+
+      // Fetch total proposals from the API
+      const proposalsResponse = await fetch("/api/proposals")
+      const proposalsData = await proposalsResponse.json()
+      if (proposalsData.success && Array.isArray(proposalsData.data)) {
+        setTotalProposals(proposalsData.data.length)
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error)
+    }
+  }
   
   useEffect(() => {
     // Update UTC time every second
@@ -42,31 +64,32 @@ export function ProgressPanel() {
       setCurrentTime(getUTCTime())
     }, 1000)
 
-    const fetchData = async () => {
-      try {
-        // Fetch token metadata
-        const metadataResponse = await fetch("/api/token-metadata")
-        const metadataData = await metadataResponse.json()
-        setMarketCap(metadataData.data?.market_cap ? Number(metadataData.data.market_cap) : null)
-        setHolders(metadataData.data?.holder ? Number(metadataData.data.holder) : null)
-
-        // Fetch total proposals from the API
-        const proposalsResponse = await fetch("/api/proposals")
-        const proposalsData = await proposalsResponse.json()
-        if (proposalsData.success && Array.isArray(proposalsData.data)) {
-          setTotalProposals(proposalsData.data.length)
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error)
-      }
-    }
-
+    // Load initial data
     fetchData()
-    const dataInterval = setInterval(fetchData, 5000) // Refresh every 5 seconds
+    
+    // Update progress bar every second
+    const progressInterval = setInterval(() => {
+      setRefreshProgress(prev => {
+        // If we reach 100%, reset and fetch new data
+        if (prev >= 100) {
+          // Call API to update data
+          fetchData()
+          return 0
+        }
+        return prev + (100/60) // Increment to complete in 60 seconds
+      })
+      
+      setSecondsUntilRefresh(prev => {
+        if (prev <= 1) {
+          return 60
+        }
+        return prev - 1
+      })
+    }, 1000)
 
     return () => {
       clearInterval(timeInterval)
-      clearInterval(dataInterval)
+      clearInterval(progressInterval)
     }
   }, [])
 
@@ -96,13 +119,28 @@ export function ProgressPanel() {
               </div>
               <div className="text-right">
                 <div>{marketCap ? `$${marketCap.toLocaleString()}` : "Loading..."}</div>
-                <div className="text-xs text-gray-500">Target: $1,000,000</div>
+                <div className="text-xs text-gray-500">Next update: {secondsUntilRefresh}s</div>
               </div>
             </div>
+            
+            {/* Progress bar for update */}
+            <Progress 
+              value={refreshProgress} 
+              className="h-1 bg-gray-800"
+            />
 
             <div className="flex justify-between items-center">
-              <div>Holders</div>
-              <div>{holders ? holders.toLocaleString() : "Loading..."}</div>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+                  </svg>
+                  Holders
+                </div>
+              </div>
+              <div className="text-right">
+                <div>{holders ? holders.toLocaleString() : "Loading..."}</div>
+              </div>
             </div>
 
             <div className="flex justify-between items-center">
@@ -120,11 +158,7 @@ export function ProgressPanel() {
               value={(totalProposals / 2000) * 100} 
               className="h-2"
             />
-
-            <div className="flex justify-between items-center">
-              <div>Time Elapsed</div>
-              <div>0d 0h</div>
-            </div>
+            
           </div>
         </CollapsibleContent>
       </Collapsible>
