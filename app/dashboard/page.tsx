@@ -148,8 +148,7 @@ export default function DashboardPage() {
               {!hasReachedProposalLimit && (
                 <button
                   type="submit"
-                  className="ml-4 px-6 py-2 rounded-md font-medium text-white bg-purple-600 hover:bg-purple-700"
-                >
+                  className="ml-4 px-6 py-2 rounded-md font-medium text-white bg-red-600 hover:bg-red-500">
                   Send
                 </button>
               )}

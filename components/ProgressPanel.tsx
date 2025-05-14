@@ -19,16 +19,27 @@ function getESTTime() {
   })
 }
 
+// Helper function to get UTC time
+function getUTCTime() {
+  return new Date().toLocaleString('en-US', { 
+    timeZone: 'UTC',
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true 
+  })
+}
+
 export function ProgressPanel() {
   const [marketCap, setMarketCap] = useState<number | null>(null)
   const [holders, setHolders] = useState<number | null>(null)
   const [totalProposals, setTotalProposals] = useState<number>(0)
-  const [currentTime, setCurrentTime] = useState(getESTTime())
+  const [currentTime, setCurrentTime] = useState(getUTCTime())
   
   useEffect(() => {
-    // Update EST time every second
+    // Update UTC time every second
     const timeInterval = setInterval(() => {
-      setCurrentTime(getESTTime())
+      setCurrentTime(getUTCTime())
     }, 1000)
 
     const fetchData = async () => {
@@ -69,11 +80,11 @@ export function ProgressPanel() {
         </CollapsibleTrigger>
         <CollapsibleContent className="space-y-4">
           <div className="space-y-4">
-            {/* EST Time Display */}
+            {/* UTC Time Display */}
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-blue-500" />
-                EST Time
+                UTC Time
               </div>
               <div className="text-right font-mono">{currentTime}</div>
             </div>

@@ -140,7 +140,7 @@ export default function EntryPage() {
         <div className="flex space-x-8">
           <Link href="https://x.com" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
-              src="/assets/x.png"
+              src="/assets/xx.png"
               alt="X"
               width={132}
               height={162}

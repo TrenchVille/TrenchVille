@@ -8,6 +8,7 @@ import { ConnectWallet } from "@/components/ConnectWallet"
 import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
 import type React from "react"
+import Image from "next/image"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -25,9 +26,7 @@ const Navigation = () => {
   return (
     <nav className="h-14 px-6 flex items-center justify-between">
       <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-        <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor">
-          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-        </svg>
+        <img src="/assets/trenchville3.png" alt="TrenchVille Logo" className="w-6 h-6" />
         TrenchVille
         <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">BETA</span>
       </Link>
@@ -49,7 +48,13 @@ const Navigation = () => {
         <Link href="/Holders" className="text-sm hover:text-white/80" prefetch={false}>
           Holders
         </Link>
-        <ConnectWallet />
+        <Link 
+          href="https://dexscreener.com/" 
+          target="_blank"
+          className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
+        >
+          BUY NOW!
+        </Link>
       </div>
     </nav>
   )
@@ -72,7 +77,47 @@ export default function RootLayout({
               <Navigation />
             </header>
           )}
-          <div className={isHomePage ? "" : "pt-16 min-h-screen"}>{children}</div>
+          <div className={isHomePage ? "" : "pt-16 min-h-screen"}>
+            {children}
+            <div className="fixed bottom-4 z-10 flex flex-col items-center">
+              <img 
+                src="/assets/trenchville2.png" 
+                alt="TrenchVille Logo" 
+                className="w-44 h-auto mb-4" 
+              />
+              
+              {/* Social Links */}
+              <div className="flex space-x-0 bg-black/50 p-2 rounded-full">
+                <Link href="https://x.com" target="_blank" className="hover:opacity-80 transition-opacity">
+                  <Image 
+                    src="/assets/xx.png" 
+                    alt="X" 
+                    width={90} 
+                    height={90} 
+                    className="w-15 h-15" 
+                  />
+                </Link>
+                <Link href="https://dexscreener.com/" target="_blank" className="hover:opacity-80 transition-opacity">
+                  <Image 
+                    src="/assets/dexscreener.png" 
+                    alt="dexscreener" 
+                    width={90} 
+                    height={90} 
+                    className="w-15 h-15" 
+                  />
+                </Link>
+                <Link href="https://dextools.io" target="_blank" className="hover:opacity-80 transition-opacity">
+                  <Image 
+                    src="/assets/dex.png" 
+                    alt="dextools" 
+                    width={90} 
+                    height={90} 
+                    className="w-15 h-15" 
+                  />
+                </Link>
+              </div>
+            </div>
+          </div>
         </DynamicWalletProvider>
       </body>
     </html>
