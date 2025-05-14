@@ -69,7 +69,7 @@ export default function ApiInfoPage() {
               </div>
               <div className="text-right">
                 <div>6,920</div>
-                <div className="text-xs text-gray-500">Target: 2000/day</div>
+                <div className="text-xs text-gray-500">Target: 1000/day</div>
               </div>
             </div>
             <Progress value={69.2} className="h-2" />

@@ -18,8 +18,8 @@ export function InfoFAQ() {
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pb-2 text-sm text-gray-400">
-              TrenchVille is a platform that combines artificial intelligence with blockchain technology to create
-              evolving virtual civilizations in a trench warfare setting.
+            TrenchVille is a city that combines artificial intelligence with Solana technology to create an evolving city that grows constantly
+            with the holders.
             </CollapsibleContent>
           </Collapsible>
 
@@ -29,19 +29,18 @@ export function InfoFAQ() {
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pb-2 text-sm text-gray-400">
-              Users can submit suggestions to influence the evolution of TrenchVille. The best suggestions are
-              implemented automatically to shape the trench warfare landscape.
+            Users can submit suggestions to influence the evolution of TrenchVille, 
+            the best suggestions are implemented to shape the future of the City.
             </CollapsibleContent>
           </Collapsible>
 
           <Collapsible>
             <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left">
-              <span>How long does evolution take?</span>
+              <span>What is the Town Hall?</span>
               <ChevronDown className="h-4 w-4" />
             </CollapsibleTrigger>
             <CollapsibleContent className="pb-2 text-sm text-gray-400">
-              Evolution in TrenchVille happens in real-time and is influenced by user interactions and suggestions. Each
-              phase of trench warfare has its own completion requirements.
+            The Town Hall is a place where people can vote for ideas and the best ones will be implemented into TrenchVille.
             </CollapsibleContent>
           </Collapsible>
         </CollapsibleContent>
