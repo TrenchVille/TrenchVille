@@ -62,7 +62,7 @@ export function ProgressPanel() {
     }
 
     fetchData()
-    const dataInterval = setInterval(fetchData, 60000) // Refresh every minute
+    const dataInterval = setInterval(fetchData, 5000) // Refresh every 5 seconds
 
     return () => {
       clearInterval(timeInterval)
