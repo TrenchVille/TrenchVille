@@ -7,6 +7,7 @@ import { InfoFAQ } from "@/components/InfoFAQ"
 import { useState, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { toast } from "sonner"
+import { Socials } from "@/components/Socials"
 
 const House3DScene = dynamic(() => import("@/components/3d/House3DScene"), {
   ssr: false,
@@ -117,6 +118,9 @@ export default function DashboardPage() {
           <div className="absolute inset-0 bottom-[78px]">
             <House3DScene key="house3d-scene" />
           </div>
+          
+          {/* Añadimos el componente Socials aquí */}
+          <Socials />
           
           {/* Proposal Input - Fixed at bottom with padding to match design */}
           <div className="absolute bottom-0 left-0 right-0 z-50 bg-black border-t border-white/10">

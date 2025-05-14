@@ -2,6 +2,7 @@
 
 import { ProgressPanel } from "@/components/ProgressPanel"
 import { InfoFAQ } from "@/components/InfoFAQ"
+import { Socials } from "@/components/Socials"
 import { useState, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { toast } from "sonner"
@@ -81,6 +82,7 @@ export default function TownHallPage() {
           wallet_address: walletAddress
         }),
       })
+      
       
       const result = await response.json()
       
@@ -292,7 +294,8 @@ export default function TownHallPage() {
 
       {/* Right Sidebar */}
       <aside className="fixed right-0 top-16 w-64 h-[calc(100vh-4rem)] border-l border-white/10 bg-black/95">
-        <ProgressPanel />               
+        <ProgressPanel />
+        <Socials />               
       </aside>
     </div>
   )
