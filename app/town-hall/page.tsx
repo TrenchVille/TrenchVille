@@ -6,6 +6,8 @@ import { Socials } from "@/components/Socials"
 import { useState, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { toast } from "sonner"
+import { v4 as uuidv4 } from 'uuid'
+import Cookies from 'js-cookie'
 
 type Review = {
   id: number
@@ -19,6 +21,21 @@ export default function TownHallPage() {
   const [reviews, setReviews] = useState<Review[]>([])
   const [loading, setLoading] = useState(true)
   const { connected, publicKey } = useWallet()
+  const [browserFingerprint, setBrowserFingerprint] = useState<string>("")
+
+  useEffect(() => {
+    // Generate or retrieve a unique ID for this browser
+    const getBrowserFingerprint = () => {
+      let fingerprint = Cookies.get('browser_fingerprint')
+      if (!fingerprint) {
+        fingerprint = uuidv4()
+        Cookies.set('browser_fingerprint', fingerprint, { expires: 365 })
+      }
+      return fingerprint
+    }
+
+    setBrowserFingerprint(getBrowserFingerprint())
+  }, [])
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -47,30 +64,27 @@ export default function TownHallPage() {
     return () => clearInterval(interval)
   }, [])
 
-  const hasVotedOnAny = connected && publicKey && reviews.some(review => 
+  // Check if the user has voted on any proposal
+  const hasVotedOnAny = reviews.some(review => 
     review.voted_by && 
     Array.isArray(review.voted_by) && 
-    review.voted_by.includes(publicKey.toBase58())
+    review.voted_by.includes(browserFingerprint)
   )
 
-  // Count user's suggestions
+  // Count user suggestions (by browser or wallet)
   const userProposalCount = connected && publicKey 
     ? reviews.filter(review => review.author === publicKey.toBase58()).length
-    : reviews.length > 0 ? 1 : 0
+    : reviews.filter(review => review.author === browserFingerprint).length
 
-  // Check if user has reached their suggestion limit
-  const hasReachedProposalLimit = connected && publicKey 
-    ? userProposalCount >= 2 // Connected users: limit of 2
-    : userProposalCount >= 1 // Non-connected users: limit of 1
+  // Check if the user has reached their suggestion limit
+  const hasReachedProposalLimit = userProposalCount >= 1
 
   const handleVoteClick = async (reviewId: number) => {
-    if (!connected || !publicKey) {
-      toast.error("Please connect your wallet to vote")
+    if (!browserFingerprint) {
+      toast.error("Could not identify your browser")
       return
     }
 
-    const walletAddress = publicKey.toBase58()
-    
     try {
       const response = await fetch('/api/votes', {
         method: 'POST',
@@ -79,22 +93,21 @@ export default function TownHallPage() {
         },
         body: JSON.stringify({
           proposal_id: reviewId,
-          wallet_address: walletAddress
+          wallet_address: connected && publicKey ? publicKey.toBase58() : browserFingerprint
         }),
       })
-      
       
       const result = await response.json()
       
       if (result.success) {
-        toast.success("Vote successfully registered!")
+        toast.success("Vote registered successfully!")
         // Update the reviews list
         const updatedReviews = reviews.map(review => {
           if (review.id === reviewId) {
             return {
               ...review,
               votes: review.votes + 1,
-              voted_by: [...(review.voted_by || []), walletAddress]
+              voted_by: [...(review.voted_by || []), connected && publicKey ? publicKey.toBase58() : browserFingerprint]
             }
           }
           return review
@@ -110,18 +123,13 @@ export default function TownHallPage() {
   }
 
   const addProposal = async (title: string) => {
-    if (!connected && hasReachedProposalLimit) {
-      toast.error("Without a connected wallet, you are limited to 1 suggestion")
+    if (hasReachedProposalLimit) {
+      toast.error("You have reached the limit of 1 suggestion per browser")
       return
     }
 
-    if (connected && !publicKey) {
-      toast.error("Please connect your wallet to propose")
-      return
-    }
-
-    if (connected && hasReachedProposalLimit) {
-      toast.error("You have reached the limit of 2 suggestions")
+    if (!browserFingerprint) {
+      toast.error("Could not identify your browser")
       return
     }
 
@@ -133,14 +141,14 @@ export default function TownHallPage() {
         },
         body: JSON.stringify({
           title,
-          author: publicKey ? publicKey.toBase58() : "anonymous"
+          author: connected && publicKey ? publicKey.toBase58() : browserFingerprint
         }),
       })
       
       const result = await response.json()
       
       if (result.success) {
-        toast.success("Proposal successfully added!")
+        toast.success("Proposal added successfully!")
         // Refresh suggestions
         const refreshResponse = await fetch('/api/proposals')
         const refreshResult = await refreshResponse.json()
@@ -168,15 +176,8 @@ export default function TownHallPage() {
       <main className="flex-1 ml-64 mr-64 min-h-[calc(100vh-4rem)] p-8">
         <h1 className="text-3xl font-bold mb-8 text-center">Town Hall</h1>
         
-        {!connected && (
-          <div className="text-center mb-8 p-4 text-white bg-red-600 hover:bg-red-500 rounded-lg">
-            Connect your wallet to view and participate in voting. 
-            Without connecting, you're limited to 1 suggestion.
-          </div>
-        )}
-
-        {connected && hasVotedOnAny && (
-          <div className="text-center mb-8 p-4 text-white bg-red-600 hover:bg-red-500 rounded-lg">
+        {hasVotedOnAny && (
+          <div className="text-center mb-8 p-4 bg-purple-500/10 text-purple-200 rounded-lg">
             Thank you for participating! Your vote has been registered.
           </div>
         )}
@@ -186,22 +187,14 @@ export default function TownHallPage() {
           <h2 className="text-xl font-semibold mb-4">Add new suggestion</h2>
           
           {/* Display suggestions limit information */}
-          {connected && publicKey && (
-            <div className="mb-4 text-sm text-gray-400">
-              You have submitted {userProposalCount} of 2 allowed suggestions
-              {hasReachedProposalLimit && (
-                <span className="ml-2 text-red-400">
-                  (Maximum limit reached)
-                </span>
-              )}
-            </div>
-          )}
-          
-          {!connected && hasReachedProposalLimit && (
-            <div className="mb-4 text-sm text-red-400">
-              You have reached your limit of 1 suggestion. Connect a wallet to submit more.
-            </div>
-          )}
+          <div className="mb-4 text-sm text-gray-400">
+            You have submitted {userProposalCount} of 1 allowed suggestion
+            {hasReachedProposalLimit && (
+              <span className="ml-2 text-red-400">
+                (Maximum limit reached)
+              </span>
+            )}
+          </div>
           
           <form onSubmit={(e) => {
             e.preventDefault()
@@ -224,11 +217,11 @@ export default function TownHallPage() {
                 className={`px-6 py-2 rounded-lg transition-colors ${
                   hasReachedProposalLimit 
                     ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'text-white bg-red-600 hover:bg-red-500'
+                    : 'bg-purple-600 hover:bg-purple-700'
                 }`}
                 disabled={hasReachedProposalLimit}
               >
-                Send
+                Submit
               </button>
             </div>
           </form>
@@ -243,11 +236,9 @@ export default function TownHallPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {reviews.map((review, index) => {
-              const hasVoted = connected && 
-                            publicKey && 
-                            review.voted_by && 
+              const hasVoted = review.voted_by && 
                             Array.isArray(review.voted_by) && 
-                            review.voted_by.includes(publicKey.toBase58())
+                            review.voted_by.includes(connected && publicKey ? publicKey.toBase58() : browserFingerprint)
               
               const authorName = review.author.slice(0, 4)
               
@@ -261,7 +252,7 @@ export default function TownHallPage() {
                       <h3 className="font-medium text-purple-300">#{review.id}</h3>
                       {index === 0 && review.votes > 0 && (
                         <span className="px-2 py-1 bg-yellow-500/20 text-yellow-500 text-xs rounded-full">
-                          Top Voted
+                          Most Voted
                         </span>
                       )}
                     </div>
@@ -271,7 +262,7 @@ export default function TownHallPage() {
                   
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-gray-400">votes: {review.votes}</span>
-                    {connected && !hasVotedOnAny && !hasVoted && (
+                    {!hasVoted && (
                       <button
                         onClick={() => handleVoteClick(review.id)}
                         className="px-6 py-2 rounded-lg transition-colors duration-200 bg-white/5 hover:bg-white/10"

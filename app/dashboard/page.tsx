@@ -8,6 +8,8 @@ import { useState, useEffect } from "react"
 import { useWallet } from "@solana/wallet-adapter-react"
 import { toast } from "sonner"
 import { Socials } from "@/components/Socials"
+import { v4 as uuidv4 } from 'uuid'
+import Cookies from 'js-cookie'
 
 const House3DScene = dynamic(() => import("@/components/3d/House3DScene"), {
   ssr: false,
@@ -19,55 +21,62 @@ export default function DashboardPage() {
   const [hasReachedProposalLimit, setHasReachedProposalLimit] = useState(false)
   const [totalProposals, setTotalProposals] = useState(0)
   const { connected, publicKey } = useWallet()
+  const [browserFingerprint, setBrowserFingerprint] = useState<string>("")
   
-  // Calculate remaining suggestions
-  const proposalLimit = connected ? 2 : 1
+  // Proposal limit per user
+  const proposalLimit = 1
   const remainingSuggestions = Math.max(0, proposalLimit - userProposalCount)
 
   useEffect(() => {
+    // Generate or retrieve a unique ID for this browser
+    const getBrowserFingerprint = () => {
+      let fingerprint = Cookies.get('browser_fingerprint')
+      if (!fingerprint) {
+        fingerprint = uuidv4()
+        Cookies.set('browser_fingerprint', fingerprint, { expires: 365 })
+      }
+      return fingerprint
+    }
+
+    setBrowserFingerprint(getBrowserFingerprint())
+  }, [])
+
+  useEffect(() => {
     const fetchProposals = async () => {
+      if (!browserFingerprint) return;
+      
       try {
         const response = await fetch('/api/proposals')
         const result = await response.json()
         
         if (result.success && result.data) {
-          // Set total proposals count
+          // Set the total number of proposals
           setTotalProposals(result.data.length)
           
-          // If connected with a wallet, filter to find user proposals
-          if (connected && publicKey) {
-            const userProposals = result.data.filter(p => p.author === publicKey.toBase58())
-            setUserProposalCount(userProposals.length)
-            setHasReachedProposalLimit(userProposals.length >= 2)
-          } else {
-            // For non-connected users, check if they've made an anonymous proposal
-            const anonymousProposals = result.data.filter(p => p.author === "anonymous")
-            // This is simplified - in a real app you'd need to track this per-user
-            setUserProposalCount(anonymousProposals.length > 0 ? 1 : 0)
-            setHasReachedProposalLimit(anonymousProposals.length >= 1)
-          }
+          // Identify current user's proposals
+          const userIdentifier = connected && publicKey ? publicKey.toBase58() : browserFingerprint
+          const userProposals = result.data.filter(p => p.author === userIdentifier)
+          setUserProposalCount(userProposals.length)
+          setHasReachedProposalLimit(userProposals.length >= proposalLimit)
         }
       } catch (error) {
         console.error("Error fetching proposals:", error)
       }
     }
 
-    fetchProposals()
-  }, [connected, publicKey])
+    if (browserFingerprint) {
+      fetchProposals()
+    }
+  }, [connected, publicKey, browserFingerprint])
 
   const addProposal = async (title: string) => {
-    if (!connected && hasReachedProposalLimit) {
-      toast.error("Without a connected wallet, you are limited to 1 proposal")
+    if (hasReachedProposalLimit) {
+      toast.error("You have reached the limit of 1 proposal per browser")
       return
     }
 
-    if (connected && !publicKey) {
-      toast.error("Please connect your wallet to propose")
-      return
-    }
-
-    if (connected && hasReachedProposalLimit) {
-      toast.error("You have reached the limit of 2 proposals")
+    if (!browserFingerprint) {
+      toast.error("Could not identify your browser")
       return
     }
 
@@ -79,20 +88,18 @@ export default function DashboardPage() {
         },
         body: JSON.stringify({
           title,
-          author: publicKey ? publicKey.toBase58() : "anonymous"
+          author: connected && publicKey ? publicKey.toBase58() : browserFingerprint
         }),
       })
       
       const result = await response.json()
       
       if (result.success) {
-        toast.success("Proposal successfully added!")
+        toast.success("Proposal added successfully!")
         setUserProposalCount(prev => prev + 1)
         setTotalProposals(prev => prev + 1)
         
-        if (!connected && userProposalCount + 1 >= 1) {
-          setHasReachedProposalLimit(true)
-        } else if (connected && userProposalCount + 1 >= 2) {
+        if (userProposalCount + 1 >= proposalLimit) {
           setHasReachedProposalLimit(true)
         }
       } else {
@@ -119,7 +126,7 @@ export default function DashboardPage() {
             <House3DScene key="house3d-scene" />
           </div>
           
-          {/* Añadimos el componente Socials aquí */}
+          {/* Add the Socials component here */}
           <Socials />
           
           {/* Proposal Input - Fixed at bottom with padding to match design */}
@@ -145,7 +152,7 @@ export default function DashboardPage() {
                 type="text"
                 name="title"
                 className="flex-1 bg-transparent text-gray-300 border-none outline-none py-2 px-1"
-                placeholder="Type your suggestion..."
+                placeholder="Write your suggestion..."
                 required
                 disabled={hasReachedProposalLimit}
               />
@@ -153,7 +160,7 @@ export default function DashboardPage() {
                 <button
                   type="submit"
                   className="ml-4 px-6 py-2 rounded-md font-medium text-white bg-red-600 hover:bg-red-500">
-                  Send
+                  Submit
                 </button>
               )}
             </form>
