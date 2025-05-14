@@ -112,7 +112,7 @@ export function ProgressPanel() {
               </div>
               <div className="text-right">
                 <div>{totalProposals}</div>
-                <div className="text-xs text-gray-500">Target: 2000/day</div>
+                <div className="text-xs text-gray-500">Target: 1000/day</div>
               </div>
             </div>
             
