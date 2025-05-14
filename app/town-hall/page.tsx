@@ -8,6 +8,7 @@ import { useWallet } from "@solana/wallet-adapter-react"
 import { toast } from "sonner"
 import { v4 as uuidv4 } from 'uuid'
 import Cookies from 'js-cookie'
+import { Search } from "lucide-react"
 
 type Review = {
   id: number
@@ -22,6 +23,7 @@ export default function TownHallPage() {
   const [loading, setLoading] = useState(true)
   const { connected, publicKey } = useWallet()
   const [browserFingerprint, setBrowserFingerprint] = useState<string>("")
+  const [searchTerm, setSearchTerm] = useState("")
 
   useEffect(() => {
     // Generate or retrieve a unique ID for this browser
@@ -165,6 +167,11 @@ export default function TownHallPage() {
     }
   }
 
+  // Filtrar las propuestas basadas en el término de búsqueda
+  const filteredReviews = reviews.filter(review => 
+    review.title.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
   return (
     <div className="flex">
       {/* Left Sidebar */}
@@ -181,6 +188,8 @@ export default function TownHallPage() {
             Thank you for participating! Your vote has been registered.
           </div>
         )}
+
+        
 
         {/* Proposal form section */}
         <div className="mb-8">
@@ -217,7 +226,7 @@ export default function TownHallPage() {
                 className={`px-6 py-2 rounded-lg transition-colors ${
                   hasReachedProposalLimit 
                     ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-purple-600 hover:bg-purple-700'
+                    : 'bg-red-600 hover:bg-red-500'
                 }`}
                 disabled={hasReachedProposalLimit}
               >
@@ -226,21 +235,42 @@ export default function TownHallPage() {
             </div>
           </form>
         </div>
-        
+        {/* Barra de búsqueda */}
+        <div className="mb-6">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <Search className="w-5 h-5 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              className="block w-full p-2 pl-10 bg-gray-900/50 border border-white/10 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+              placeholder="Search for a suggestion..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
         {loading ? (
           <div className="text-center p-10">Loading suggestions...</div>
-        ) : reviews.length === 0 ? (
-          <div className="text-center p-10 bg-gray-900/30 rounded-lg">
-            No suggestions yet. Be the first to suggest!
-          </div>
+        ) : filteredReviews.length === 0 ? (
+          searchTerm ? (
+            <div className="text-center p-10 bg-gray-900/30 rounded-lg">
+              No se encontraron sugerencias que coincidan con "{searchTerm}"
+            </div>
+          ) : (
+            <div className="text-center p-10 bg-gray-900/30 rounded-lg">
+              No suggestions yet. Be the first to suggest!
+            </div>
+          )
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reviews.map((review, index) => {
+            {filteredReviews.map((review, index) => {
               const hasVoted = review.voted_by && 
                             Array.isArray(review.voted_by) && 
                             review.voted_by.includes(connected && publicKey ? publicKey.toBase58() : browserFingerprint)
               
-              const authorName = review.author.slice(0, 4)
+              const authorName = review.author.slice(-4)
               
               return (
                 <div key={review.id} className="bg-gray-900/50 rounded-lg p-6 border border-white/10">
