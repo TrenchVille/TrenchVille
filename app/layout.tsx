@@ -69,7 +69,7 @@ const Navigation = () => {
           target="_blank"
           className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
         >
-          BUY NOW!
+          BUY NOW!!
         </Link>
       </div>
     </nav>
