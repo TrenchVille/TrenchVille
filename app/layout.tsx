@@ -65,7 +65,7 @@ const Navigation = () => {
           Town Hall
         </Link>
         <Link 
-          href="https://axiom.trade/meme/4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6" 
+          href="https://axiom.trade/meme/8bU1MM8zwJeQ8btWNKhUgmAbGgGbVaFqCsNZ2HZ1DfG2" 
           target="_blank"
           className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
         >
