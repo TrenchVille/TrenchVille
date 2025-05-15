@@ -93,7 +93,7 @@ export default function EntryPage() {
               DEXSCREENER
             </Link>
             <Link 
-              href="https://github.com" 
+              href="https://github.com/trenchville/trenchville" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}

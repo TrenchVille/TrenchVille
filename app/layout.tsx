@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation"
 import type React from "react"
 import Image from "next/image"
 import { toast } from "sonner"
+import Head from "next/head"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -85,6 +86,9 @@ export default function RootLayout({
   
   return (
     <html lang="en" className="dark">
+      <head>
+        <link rel="icon" href="/assets/favicon.ico" />
+      </head>
       <body className={`${inter.className} bg-black text-white`}>
         <DynamicWalletProvider>
           {!isHomePage && (
