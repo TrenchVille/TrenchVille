@@ -817,14 +817,14 @@ function Scene() {
 
       if (isDeselecting) return null
 
-      const amount = characterData.holderData.amount / Math.pow(10, 6)
+      const amount = characterData.holderData.amount / Math.pow(10, 9)
       const percentage = ((amount / TOTAL_SUPPLY) * 100).toFixed(2)
 
       return {
         ...characterData,
         holderData: {
           ...characterData.holderData,
-          decimals: 6,
+          decimals: 9,
           totalSupply: TOTAL_SUPPLY,
           percentage: percentage,
         },

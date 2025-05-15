@@ -69,7 +69,7 @@ export function NextCycle() {
     <div className="p-3 rounded-lg bg-gray-900/50 border border-white/10 mb-4">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span>Next {isNight ? "Day" : "Night"}</span>
+          <span>{isNight ? "Day" : "Night"} Time</span>
           {isNight ? (
             <Sun className="w-4 h-4 text-yellow-400" />
           ) : (

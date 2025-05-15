@@ -85,7 +85,7 @@ export default function EntryPage() {
               X | TWITTER
             </Link>
             <Link 
-              href="https://dexscreener.com/" 
+              href="https://dexscreener.com/solana/fwvbhm2dpnodww7dlxlymwvf5dsxa5ey767gqhjae8vu" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
@@ -164,7 +164,7 @@ export default function EntryPage() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://dexscreener.com/" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://dexscreener.com/solana/fwvbhm2dpnodww7dlxlymwvf5dsxa5ey767gqhjae8vu" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/dexscreener.png"
               alt="dexscreener"

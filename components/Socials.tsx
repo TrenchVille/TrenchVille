@@ -21,7 +21,7 @@ export function Socials() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://dexscreener.com/" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://dexscreener.com/solana/fwvbhm2dpnodww7dlxlymwvf5dsxa5ey767gqhjae8vu" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/dexscreener.png"
               alt="dexscreener"

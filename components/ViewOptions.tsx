@@ -16,7 +16,7 @@ export function ViewOptions() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Search className="w-4 h-4 text-blue-400" />
-              <span>Night Mode</span>
+              <span>Night Time</span>
             </div>
             <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">Coming Soon</span>
           </div>
