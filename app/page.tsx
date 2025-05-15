@@ -125,11 +125,11 @@ export default function EntryPage() {
           <p className="mt-2 text-lg text-gray-300">A place for Solana Degens</p>
           <div className="mt-2 flex items-center justify-center bg-black/70 px-3 py-1 rounded-md">
             <span className="text-gray-400 mr-2">Contract:</span>
-            <span className="text-gray-300 font-mono">XXXX.</span>
+            <span className="text-gray-300 font-mono">4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6.</span>
             <button 
               className="ml-2 text-gray-400 hover:text-white text-xs"
               onClick={() => {
-                navigator.clipboard.writeText("XXXX");
+                navigator.clipboard.writeText("4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6");
                 toast.success("Contract address copied to clipboard!");
               }}
             >

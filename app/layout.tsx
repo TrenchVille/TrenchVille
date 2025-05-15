@@ -37,11 +37,11 @@ const Navigation = () => {
       <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
         <div className="flex items-center justify-center bg-black/70 px-3 py-1 rounded-md"> 
           <span className="text-gray-400 mr-2">Contract:</span> 
-          <span className="text-gray-300 font-mono">XXXX.</span> 
+          <span className="text-gray-300 font-mono">4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6.</span> 
           <button  
             className="ml-2 text-gray-400 hover:text-white text-xs" 
             onClick={() => { 
-              navigator.clipboard.writeText("XXXX"); 
+              navigator.clipboard.writeText("4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6"); 
               toast.success("Contract address copied to clipboard!"); 
             }} 
           > 
@@ -65,7 +65,7 @@ const Navigation = () => {
           Town Hall
         </Link>
         <Link 
-          href="https://axiom.trade/meme/XXXX" 
+          href="https://axiom.trade/meme/4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6" 
           target="_blank"
           className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
         >
