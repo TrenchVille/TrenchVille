@@ -9,6 +9,7 @@ import dynamic from "next/dynamic"
 import { usePathname } from "next/navigation"
 import type React from "react"
 import Image from "next/image"
+import { toast } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -24,14 +25,34 @@ const DynamicWalletProvider = dynamic(() => import("@/components/WalletProvider"
 // Modified Navigation component with proper route handling
 const Navigation = () => {
   return (
-    <nav className="h-14 px-6 flex items-center justify-between">
+    <nav className="h-14 px-6 flex items-center justify-between relative">
       <Link href="/" className="flex items-center gap-2 text-xl font-bold">
         <img src="/assets/trenchville3.png" alt="TrenchVille Logo" className="w-6 h-6" />
         TrenchVille
         <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">BETA</span>
       </Link>
 
-      <div className="flex items-center gap-8">
+      {/* Contrato - Centrado */}
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+        <div className="flex items-center justify-center bg-black/70 px-3 py-1 rounded-md"> 
+          <span className="text-gray-400 mr-2">Contract:</span> 
+          <span className="text-gray-300 font-mono">XXXX.</span> 
+          <button  
+            className="ml-2 text-gray-400 hover:text-white text-xs" 
+            onClick={() => { 
+              navigator.clipboard.writeText("XXXX"); 
+              toast.success("Contract address copied to clipboard!"); 
+            }} 
+          > 
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> 
+              <path d="M8 5H6C4.89543 5 4 5.89543 4 7V19C4 20.1046 4.89543 21 6 21H16C17.1046 21 18 20.1046 18 19V17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> 
+              <path d="M19 3H9C7.89543 3 7 3.89543 7 5V15C7 16.1046 7.89543 17 9 17H19C20.1046 17 21 16.1046 21 15V5C21 3.89543 20.1046 3 19 3Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/> 
+            </svg> 
+          </button> 
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
         <Link 
           href="/dashboard"
           className="text-sm hover:text-white/80"

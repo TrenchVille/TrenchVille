@@ -12,7 +12,7 @@ export function Socials() {
       
       {/* Social Links */}
       <div className="flex space-x-4 bg-black/50 p-2 rounded-full">
-      <Link href="https://x.com" target="_blank" className="hover:opacity-80 transition-opacity">
+      <Link href="https://x.com/TrnchVille" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/xx.png"
               alt="X"
@@ -30,7 +30,7 @@ export function Socials() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://github.com/" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://github.com/TrenchVille/TrenchVille" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/github.png"
               alt="github"

@@ -77,7 +77,7 @@ export default function EntryPage() {
               ENTER TRENCHVILLE
             </Link>
             <Link 
-              href="https://x.com" 
+              href="https://x.com/TrnchVille" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
@@ -125,11 +125,11 @@ export default function EntryPage() {
           <p className="mt-2 text-lg text-gray-300">A place for Solana Degens</p>
           <div className="mt-2 flex items-center justify-center bg-black/70 px-3 py-1 rounded-md">
             <span className="text-gray-400 mr-2">Contract:</span>
-            <span className="text-gray-300 font-mono">XXXX...XXXX</span>
+            <span className="text-gray-300 font-mono">XXXX.</span>
             <button 
               className="ml-2 text-gray-400 hover:text-white text-xs"
               onClick={() => {
-                navigator.clipboard.writeText("XXXX...XXXX");
+                navigator.clipboard.writeText("XXXX");
                 toast.success("Contract address copied to clipboard!");
               }}
             >
@@ -155,7 +155,7 @@ export default function EntryPage() {
         
         {/* Social Links */}
         <div className="flex space-x-14">
-          <Link href="https://x.com" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://x.com/TrnchVille" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/xx.png"
               alt="X"
@@ -173,7 +173,7 @@ export default function EntryPage() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://github.com/" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://github.com/trenchville/trenchville" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/github.png"
               alt="github"
