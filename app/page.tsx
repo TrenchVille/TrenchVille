@@ -85,7 +85,7 @@ export default function EntryPage() {
               X | TWITTER
             </Link>
             <Link 
-              href="https://dexscreener.com/solana/fwvbhm2dpnodww7dlxlymwvf5dsxa5ey767gqhjae8vu" 
+              href="https://dexscreener.com/solana/" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
@@ -125,11 +125,11 @@ export default function EntryPage() {
           <p className="mt-2 text-lg text-gray-300">A place for Solana Degens</p>
           <div className="mt-2 flex items-center justify-center bg-black/70 px-3 py-1 rounded-md">
             <span className="text-gray-400 mr-2">Contract:</span>
-            <span className="text-gray-300 font-mono">4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6.</span>
+            <span className="text-gray-300 font-mono">BONK.</span>
             <button 
               className="ml-2 text-gray-400 hover:text-white text-xs"
               onClick={() => {
-                navigator.clipboard.writeText("4j9tpEHpBjpoEuFdV6NP5qzac7vaQ1rHG7ppbS3ocEK6");
+                navigator.clipboard.writeText("BONK");
                 toast.success("Contract address copied to clipboard!");
               }}
             >
@@ -164,7 +164,7 @@ export default function EntryPage() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://dexscreener.com/solana/fwvbhm2dpnodww7dlxlymwvf5dsxa5ey767gqhjae8vu" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://dexscreener.com/solana" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/dexscreener.png"
               alt="dexscreener"
