@@ -690,7 +690,7 @@ function Scene() {
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
   const characterModels = useRef([])
-  const totalCharacters = 94
+  const totalCharacters = 15
 
   // Update time and day/night cycle
   useEffect(() => {

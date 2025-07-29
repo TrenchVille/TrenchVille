@@ -12,11 +12,11 @@ export function InfoFAQ() {
       <div className="space-y-2">
         <Collapsible>
           <CollapsibleTrigger className="flex w-full items-center justify-between py-2 text-left">
-            <span>What is TrenchVille?</span>
+            <span>What is BonkVillage?</span>
             <ChevronDown className="h-4 w-4" />
           </CollapsibleTrigger>
           <CollapsibleContent className="pb-2 text-sm text-gray-400">
-          TrenchVille is a city that combines artificial intelligence with Solana technology to create an evolving city that grows constantly
+          BonkVillage is a city that combines artificial intelligence with Solana technology to create an evolving city that grows constantly
           with the holders.
           </CollapsibleContent>
         </Collapsible>
@@ -27,7 +27,7 @@ export function InfoFAQ() {
             <ChevronDown className="h-4 w-4" />
           </CollapsibleTrigger>
           <CollapsibleContent className="pb-2 text-sm text-gray-400">
-          Users can submit suggestions to influence the evolution of TrenchVille, 
+          Users can submit suggestions to influence the evolution of BonkVillage, 
           the best suggestions are implemented to shape the future of the City.
           </CollapsibleContent>
         </Collapsible>
@@ -38,7 +38,7 @@ export function InfoFAQ() {
             <ChevronDown className="h-4 w-4" />
           </CollapsibleTrigger>
           <CollapsibleContent className="pb-2 text-sm text-gray-400">
-          The Town Hall is a place where people can vote for ideas and the best ones will be implemented into TrenchVille.
+          The Town Hall is a place where people can vote for ideas and the best ones will be implemented into BonkVillage.
           </CollapsibleContent>
         </Collapsible>
       </div>

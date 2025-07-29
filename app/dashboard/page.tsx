@@ -13,7 +13,7 @@ import Cookies from 'js-cookie'
 
 const House3DScene = dynamic(() => import("@/components/3d/House3DScene"), {
   ssr: false,
-  loading: () => <div className="h-[calc(100vh-4rem)] flex items-center justify-center">Loading TrenchVille...</div>,
+  loading: () => <div className="h-[calc(100vh-4rem)] flex items-center justify-center">Loading BonkVillage...</div>,
 })
 
 export default function DashboardPage() {
@@ -159,7 +159,7 @@ export default function DashboardPage() {
               {!hasReachedProposalLimit && (
                 <button
                   type="submit"
-                  className="ml-4 px-6 py-2 rounded-md font-medium text-white bg-red-600 hover:bg-red-500">
+                  className="ml-4 px-6 py-2 rounded-md font-medium text-white bg-orange-600 hover:bg-orange-500">
                   Submit
                 </button>
               )}

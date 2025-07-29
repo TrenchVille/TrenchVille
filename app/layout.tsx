@@ -15,8 +15,8 @@ import Head from "next/head"
 const inter = Inter({ subsets: ["latin"] })
 
 const metadata = {
-  title: "TrenchVille",
-  description: "TrenchVille Dashboard",
+  title: "BonkVillage",
+  description: "BonkVillage Dashboard",
 }
 
 const DynamicWalletProvider = dynamic(() => import("@/components/WalletProvider").then((mod) => mod.WalletProvider), {
@@ -28,8 +28,8 @@ const Navigation = () => {
   return (
     <nav className="h-14 px-6 flex items-center justify-between relative">
       <Link href="/" className="flex items-center gap-2 text-xl font-bold">
-        <img src="/assets/trenchville3.png" alt="TrenchVille Logo" className="w-6 h-6" />
-        TrenchVille
+        <img src="/assets/bonkvillage3.png" alt="BonkVillage Logo" className="w-15 h-10" />
+        BonkVillage
         <span className="text-xs px-2 py-0.5 bg-yellow-500/20 text-yellow-500 rounded">BETA</span>
       </Link>
 
@@ -67,7 +67,7 @@ const Navigation = () => {
         <Link 
           href="https://axiom.trade/pulse" 
           target="_blank"
-          className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
+          className="bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-4 rounded shadow-md transition-all duration-200"
         >
           BUY NOW!!
         </Link>

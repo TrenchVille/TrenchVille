@@ -58,7 +58,7 @@ export default function EntryPage() {
       {menuOpen && (
         <div className="fixed inset-0 bg-black/90 z-40 flex flex-col items-center justify-center">
           <div className="absolute top-0 left-0 p-4">
-            <Link href="/" className="text-white text-xl font-bold">TRENCHVILLE</Link>
+            <Link href="/" className="text-white text-xl font-bold">BONKVILLAGE</Link>
           </div>
           
           <nav className="flex flex-col items-center space-y-6 text-center">
@@ -74,10 +74,10 @@ export default function EntryPage() {
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
-              ENTER TRENCHVILLE
+              ENTER BONKVILLAGE
             </Link>
             <Link 
-              href="https://x.com/TrnchVille" 
+              href="https://x.com/BonkVillage" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
@@ -93,17 +93,17 @@ export default function EntryPage() {
               DEXSCREENER
             </Link>
             <Link 
-              href="https://github.com/trenchville/trenchville" 
+              href="https://letsbonk.fun/" 
               target="_blank"
               className="text-white text-xl hover:text-gray-300 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
-              GITHUB
+              BONK
             </Link>
           </nav>
           
           <div className="absolute bottom-4 text-center text-white/60 text-sm">
-            TRENCHVILLE: A PLACE FOR DEGENS
+           BONKVILLAGE: A PLACE FOR DEGENS
           </div>
         </div>
       )}
@@ -115,8 +115,8 @@ export default function EntryPage() {
         {/* Logo */}
         <div className="mb-12 flex flex-col items-center">
           <Image 
-            src="/assets/trenchville-logo.webp" 
-            alt="TrenchVille Logo" 
+            src="/assets/bonkvillage-logo.webp" 
+            alt="BonkVillage Logo" 
             width={300} 
             height={150}
             className="mb-4"
@@ -145,7 +145,7 @@ export default function EntryPage() {
         <div className="mb-16 cursor-pointer" onClick={handleEnterClick}>
           <Image 
             src="/assets/enter.webp" 
-            alt="ENTER TRENCHVILLE" 
+            alt="ENTER BONKVILLAGE" 
             width={300} 
             height={80}
             className={`transition-all duration-300 ${loading ? 'opacity-70' : 'hover:scale-105'}`}
@@ -155,7 +155,7 @@ export default function EntryPage() {
         
         {/* Social Links */}
         <div className="flex space-x-14">
-          <Link href="https://x.com/TrnchVille" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://x.com/BonkVillage" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
               src="/assets/xx.png"
               alt="X"
@@ -173,9 +173,9 @@ export default function EntryPage() {
               className="w-18 h-18"
             />
           </Link>
-          <Link href="https://github.com/trenchville/trenchville" target="_blank" className="hover:opacity-80 transition-opacity">
+          <Link href="https://letsbonk.fun/" target="_blank" className="hover:opacity-80 transition-opacity">
           <Image
-              src="/assets/github.png"
+              src="/assets/bonk.png"
               alt="github"
               width={50}
               height={50}

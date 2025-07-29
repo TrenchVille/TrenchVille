@@ -226,7 +226,7 @@ export default function TownHallPage() {
                 className={`px-6 py-2 rounded-lg transition-colors ${
                   hasReachedProposalLimit 
                     ? 'bg-gray-600 cursor-not-allowed' 
-                    : 'bg-red-600 hover:bg-red-500'
+                    : 'bg-orange-600 hover:bg-red-500'
                 }`}
                 disabled={hasReachedProposalLimit}
               >

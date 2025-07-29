@@ -1,12 +1,12 @@
 <div align="center">
-  <a href="https://www.trnchville.com/">
+  <a href="">
     <img src="https://github.com/TrenchVille/TrenchVille/blob/main/public/assets/banner.png" alt="Banner" width="1500">
   </a>
 </div>
 <br/>
 
 <div align="center">
-  <a href="https://www.trnchville.com/">
+  <a href="">
     <img src="https://github.com/TrenchVille/TrenchVille/blob/main/public/assets/trenchville3.png" alt="Logo" width="80" height="80">
   </a>
 </div>
@@ -17,11 +17,11 @@
 
 
 ## About The Project
-TrenchVille is a city that combines artificial intelligence with Solana technology to create an evolving city that grows constantly with the holders.
+BonkVillage is a city that combines artificial intelligence with Solana technology to create an evolving city that grows constantly with the holders.
 
 1 Holder = 1 Citizen
 
-<h4 align="center">https://www.trnchville.com/</h4>
+
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -39,7 +39,7 @@ TrenchVille is a city that combines artificial intelligence with Solana technolo
 ## Roadmap
 
 <div align="center">
-  <a href="https://www.trnchville.com/">
+  <a href="">
     <img src="https://github.com/TrenchVille/TrenchVille/blob/main/public/assets/roadmap.png" alt="Banner" width="1919" >
   </a>
 </div>
@@ -49,9 +49,7 @@ TrenchVille is a city that combines artificial intelligence with Solana technolo
 <!-- CONTACT -->
 ## Contact
 
-TrenchVille - [@TrnchVille](https://x.com/TrnchVille)
-
-TrenchMayor - [@TrenchMayor](https://x.com/TrenchMayor) 
+BonkVillage - [@BonkVillage](https://x.com/BonkVillage)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
