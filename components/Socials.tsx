@@ -3,11 +3,11 @@ import Image from "next/image"
 
 export function Socials() {
   return (
-    <div className="fixed bottom-4 left-0 z-10 flex flex-col items-center">
+    <div className="fixed bottom-4 left-6 z-10 flex flex-col items-center">
       <img 
         src="/assets/bonkvillage2.png" 
         alt="BonkVillage Logo" 
-        className="w-60 h-auto mb-2" 
+        className="w-50 h-40 mb-2" 
       />
       
       {/* Social Links */}
