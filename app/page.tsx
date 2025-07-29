@@ -115,7 +115,7 @@ export default function EntryPage() {
         {/* Logo */}
         <div className="mb-12 flex flex-col items-center">
           <Image 
-            src="/assets/bonkvillage-logo.webp" 
+            src="/assets/bvlogo.png" 
             alt="BonkVillage Logo" 
             width={300} 
             height={150}
@@ -144,7 +144,7 @@ export default function EntryPage() {
         {/* Enter Button using Image */}
         <div className="mb-16 cursor-pointer" onClick={handleEnterClick}>
           <Image 
-            src="/assets/enter.webp" 
+            src="/assets/enter.png" 
             alt="ENTER BONKVILLAGE" 
             width={300} 
             height={80}
